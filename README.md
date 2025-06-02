@@ -25,7 +25,3 @@ The GCOPTER Python API Wrapper provides a seamless interface to the GCOPTER C++ 
 - `test/` — Minimal example and environment validation harness
 - `pyproject.toml` — Python project configuration managed by uv
 - `CMakeLists.txt` — Build configuration for compiling the C++ library and bindings
-
-## License
-
-This project is released under the MIT License, in accordance with the original GCOPTER library license.
