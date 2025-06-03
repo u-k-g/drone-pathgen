@@ -734,7 +734,7 @@ public:
 //              connected.
 //                Solve their horizon edge loop.
 //				- "Extrude to P": Create new faces by connecting
-//P with the points
+// P with the points
 //                 belonging to the horizon edge. Add the new faces to M and
 //                 remove the visible faces from M.
 //              - Each point that was assigned to visible faces is now assigned

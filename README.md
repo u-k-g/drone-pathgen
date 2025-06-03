@@ -1,27 +1,38 @@
-# GCOPTER Python API Wrapper
+# GCOPTER Python Wrapper
 
-The GCOPTER Python API Wrapper provides a seamless interface to the GCOPTER C++ trajectory optimization library for multicopters. It enables developers and researchers to integrate high-performance, physics-aware trajectory planning into Python applications without ROS dependencies.
+A Python interface for advanced drone trajectory planning that generates smooth, collision-free flight paths in complex 3D environments.
 
-## Key Capabilities
+## Features
 
-- Configure three-dimensional occupancy grids and populate them with obstacles
-- Define start and goal states (position, velocity, acceleration) for the multicopter
-- Generate smooth, dynamically feasible trajectories that respect vehicle dynamics and avoid collisions
-- Produce safe flight corridors encapsulating the free space around planned paths
-- Access detailed trajectory data, including position waypoints, timing allocations, and control commands
-- Leverage NumPy-compatible data structures for seamless integration with Python scientific workflows
+- **Smart Path Planning**: Automatically generates optimal trajectories that avoid obstacles while considering real drone physics and dynamics
+- **3D Environment Support**: Works with any 3D map format including voxel grids, point clouds, and obstacle lists
+- **Physics-Aware**: Incorporates drone mass, drag, thrust limits, and other physical constraints for realistic flight paths
+- **Smooth Trajectories**: Produces continuous, jerk-limited paths that result in stable, efficient flight
+- **Safe Flight Corridors**: Creates protective zones around planned paths to ensure collision avoidance with safety margins
+- **Fast Optimization**: High-performance trajectory generation suitable for real-time applications
+- **Python Native**: Seamless integration with NumPy, SciPy, and other Python scientific libraries
+- **Not ROS Dependent**: Doesn't require ROS
 
-## Core Features
+## Usage
 
-- High-performance C++ backend utilizing GCOPTER's advanced geometric optimization and MINCO trajectory representation
-- Pybind11-based bindings exposing a clean, intuitive Python API
-- Standalone library with no external runtime dependencies beyond Eigen and OMPL
-- Native support for modern C++ standards and Python 3 environments
+The library provides a simple workflow for drone path planning:
 
-## Repository Layout
+1. **Configure Environment**: Load your 3D map with obstacles and barriers
+2. **Set Waypoints**: Define where your drone needs to start and end
+3. **Generate Path**: Let the optimizer create a smooth, safe trajectory
+4. **Execute Flight**: Use the generated waypoints and timing for drone control
 
-- `include/` — Header-only GCOPTER components and utilities
-- `src/` — C++ API implementation and Python binding code
-- `test/` — Minimal example and environment validation harness
-- `pyproject.toml` — Python project configuration managed by uv
-- `CMakeLists.txt` — Build configuration for compiling the C++ library and bindings
+Perfect for researchers, hobbyists, and professionals who need reliable drone path planning without dealing with complex robotics frameworks.
+
+## Applications
+
+- **Autonomous Delivery**: Plan efficient routes for package delivery drones in urban environments
+- **Search and Rescue**: Navigate drones through debris and obstacles during emergency operations  
+- **Inspection Tasks**: Generate precise flight paths for infrastructure inspection and monitoring
+- **Research Projects**: Rapidly prototype and test new drone navigation algorithms
+- **Simulation**: Create realistic flight paths for drone simulators and training systems
+- **Competition Flying**: Plan optimal racing lines and stunt sequences for drone competitions
+- **Mapping and Surveying**: Generate systematic flight patterns for aerial photography and LiDAR scanning
+- **Indoor Navigation**: Navigate drones through buildings, warehouses, and confined spaces
+
+## Docs
