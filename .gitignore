@@ -63,5 +63,3 @@ build/
 .commitlintrc
 
 .cache/
-
-spec.md
