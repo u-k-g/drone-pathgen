@@ -1,3 +1,10 @@
+#include "gcopter/gcopter.hpp"
+#include "gcopter/sfc_gen.hpp"
+#include "gcopter/voxel_map.hpp"
+#include <Eigen/Eigen>
+#include <memory>
+#include <vector>
+
 class GCopterAPI {
 public:
   // The 4 core API methods
