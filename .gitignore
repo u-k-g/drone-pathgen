@@ -42,7 +42,6 @@ Makefile
 
 compile_commands.json
 
-test/
 
 .vscode/
 
