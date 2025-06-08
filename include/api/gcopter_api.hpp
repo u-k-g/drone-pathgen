@@ -23,10 +23,28 @@ public:
                      const Eigen::Vector3d &origin, double voxel_scale,
                      const std::vector<Eigen::Vector3d> &obstacle_points,
                      int dilation_radius = 1);
-  void set_endpoints();
-  void run_inference();
-  void get_visualization_data();
+  /**
+   * Set start and goal positions.
+   * 
+   * @param start_pos    Starting position in world coordinates
+   * @param goal_pos     Goal position in world coordinates  
+   * @param start_vel    Initial velocity (optional, defaults to zero)
+   * @param goal_vel     Final velocity (optional, defaults to zero)
+   */
+  void set_endpoints(
+      const Eigen::Vector3d& start_pos,
+      const Eigen::Vector3d& goal_pos,
+      const Eigen::Vector3d& start_vel = Eigen::Vector3d::Zero(),
+      const Eigen::Vector3d& goal_vel = Eigen::Vector3d::Zero()
+  );
 
 private:
   std::unique_ptr<voxel_map::VoxelMap> map_;
+  
+  // Endpoint data for trajectory planning
+  Eigen::Vector3d start_position_;
+  Eigen::Vector3d goal_position_;
+  Eigen::Vector3d start_velocity_;
+  Eigen::Vector3d goal_velocity_;
+  bool endpoints_set_ = false;  // Track if endpoints have been configured
 };

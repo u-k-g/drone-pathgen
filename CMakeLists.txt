@@ -40,3 +40,11 @@ target_compile_options(drone_pathgen PRIVATE ${OMPL_CFLAGS_OTHER})
 # For debugging
 set(CMAKE_BUILD_TYPE Debug)
 
+add_executable(test test.cpp)
+target_link_libraries(test
+    drone_pathgen
+    Eigen3::Eigen
+    ${Boost_LIBRARIES}
+    ${OMPL_LIBRARIES}
+)
+
