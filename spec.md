@@ -38,29 +38,25 @@ The absolute top priority is to:
 - **Processing**: Safe Flight Corridor (SFC) generation + trajectory optimization
 - **Output**: Smooth, dynamically-feasible trajectories with timing
 ### Processing Pipeline
-1. **Map Configuration**:
-	1. Parse input map data (JSON, binary, or point cloud)
-	2. Create `VoxelMap` representation
-	3. Store obstacle information
+1. **Environment Representation** - Build 3D occupancy grid from obstacle data
+2. **Initial Path Planning** - Use OMPL planner to find collision-free waypoints  
+3. **Safe-Flight-Corridor Generation** - Create convex polytopes around path segments
+4. **Polynomial Trajectory Initialization** - Fit piecewise polynomials through corridors using MINCO
+5. **Nonlinear Optimization** - Optimize trajectory considering dynamics, collisions, and vehicle limits
+6. **Flatness Mapping** - Convert trajectory to thrust, attitude, and body rates for control
+7. **Trajectory Sampling** - Sample position, velocity, acceleration at any time point
+8. **Root Finding** - Solve polynomials for precise geometric computations
+9. **Linear Programming** - Handle polytope geometry operations  
+10. **Convex Hull** - Convert half-space representations to vertex form
 
-2. **Path Planning** (when endpoints are set):
-	1. Use OMPL via `sfc_gen::planPath()` for initial geometric path
-	2. Generate Safe Flight Corridor using `sfc_gen::convexCover()`
-	3. Create sequence of convex polytopes along path
+**Basic Usage Flow:**
+1. Create VoxelMap from point cloud or obstacle data
+2. Generate initial geometric path using OMPL
+3. Build safe flight corridors around the path
+4. Initialize polynomial trajectory through corridors
+5. Run optimization to refine trajectory
+6. Extract final trajectory for drone control
 
-3. **Trajectory Optimization** (in `runInference()`):
-	1. Setup `GCOPTER_PolytopeSFC` with:
-		1. Initial/terminal PVA (Position, Velocity, Acceleration)
-		2. Safe corridors (polytopes)
-		3. Vehicle parameters (mass, drag coefficients, thrust limits)
-		4. Optimization weights
-	2. Run L-BFGS optimization to generate smooth trajectory
-	3. Output `Trajectory<5>` object
-
-4. **Data Extraction**:
-	1. Sample trajectory at regular intervals
-	2. Extract positions, velocities, accelerations
-	3. Optionally convert to control inputs using `FlatnessMap`
 ## Input/Output Specifications
 
 ### Input Formats
