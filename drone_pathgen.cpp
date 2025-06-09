@@ -1,9 +1,6 @@
 #include <Eigen/Eigen>
 #include <iostream>
-#include <ompl/geometric/SimpleSetup.h>
-
 #include "api/gcopter_api.hpp"
-#include "gcopter/firi.hpp"
 
 class DronePathGenerator {
 private:

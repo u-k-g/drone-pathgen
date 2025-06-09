@@ -62,3 +62,4 @@ build/
 .commitlintrc
 
 .cache/
+.cursor/
