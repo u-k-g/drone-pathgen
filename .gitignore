@@ -63,3 +63,4 @@ build/
 
 .cache/
 .cursor/
+voxel_output.txt
