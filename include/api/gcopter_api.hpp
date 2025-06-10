@@ -65,6 +65,11 @@ public:
       Trajectory<5>& out_traj
   );
 
+  /**
+   * @brief Prints the voxel map to the console for visualization.
+   */
+  void print_voxel_map() const;
+
 private:
   std::unique_ptr<voxel_map::VoxelMap> map_;
   Eigen::Vector3d start_position_;

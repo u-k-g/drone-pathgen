@@ -73,6 +73,9 @@ The absolute top priority is to:
 - **Timing**: Total trajectory duration
 - **Optional**: Acceleration, jerk, control inputs (thrust, attitude)
 
+## scopes
+api, readme, voxel map, endpoints, inference, trajectory, drone path generation, tests, wrapper, bindings, build, map, planning, trajectory, optimization, visualization, docs, examples
+
 ## Notes
 - This is a **wrapper project** - we use GCOPTER's existing algorithms
 - The underlying GCOPTER algorithms handle the complex trajectory optimization

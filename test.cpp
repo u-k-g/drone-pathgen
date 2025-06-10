@@ -19,7 +19,7 @@ int main() {
 
     // 02. set endpoints for the path
     Eigen::Vector3d start(0.5, 0.5, 0.5);
-    Eigen::Vector3d goal(8.0, 8.0, 2.0);
+    Eigen::Vector3d goal(4.0, 7.0, 7.0);
     gen.set_endpoints(start, goal);
 
     // 03. test run_inference with sample parameters
@@ -54,6 +54,17 @@ int main() {
     if (success) {
         std::cout << "Trajectory duration: " << traj.getTotalDuration() << std::endl;
         std::cout << "Number of pieces: " << traj.getPieceNum() << std::endl;
+
+        // Print trajectory points for visualization
+        std::cout << "TRAJECTORY" << std::endl;
+        double dt = 0.1;
+        for (double t = 0.0; t < traj.getTotalDuration(); t += dt) {
+            Eigen::Vector3d pos = traj.getPos(t);
+            std::cout << pos.x() << " " << pos.y() << " " << pos.z() << std::endl;
+        }
+        // also print the final point
+        Eigen::Vector3d pos = traj.getPos(traj.getTotalDuration());
+        std::cout << pos.x() << " " << pos.y() << " " << pos.z() << std::endl;
     }
 
     return 0;
