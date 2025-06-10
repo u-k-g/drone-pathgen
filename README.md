@@ -34,5 +34,3 @@ Perfect for researchers, hobbyists, and professionals who need reliable drone pa
 - **Competition Flying**: Plan optimal racing lines and stunt sequences for drone competitions
 - **Mapping and Surveying**: Generate systematic flight patterns for aerial photography and LiDAR scanning
 - **Indoor Navigation**: Navigate drones through buildings, warehouses, and confined spaces
-
-## Docs
