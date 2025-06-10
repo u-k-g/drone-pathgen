@@ -5,18 +5,22 @@
 
 int main() {
   GCopterAPI gen;
-  Eigen::Vector3i map_size(10, 10, 10);
+  Eigen::Vector3i map_size(100, 100, 50);
   Eigen::Vector3d origin(0, 0, 0);
   double scale = 1;
 
-  std::vector<Eigen::Vector3d> obstacles = {{0.5, 9.5, 0.5}, {9.5, 0.5, 9.5}};
+  std::vector<Eigen::Vector3d> obstacles = {
+      {20.5, 20.5, 10.5},
+      {50.5, 25.5, 20.5},
+      {75.5, 80.5, 30.5}
+  };
 
   // 01. configure the map with obstacles
   gen.configure_map(map_size, origin, scale, obstacles, 1);
 
   // 02. set endpoints INSIDE the obstacles (this should fail if map works correctly)
-  Eigen::Vector3d start(0.5, 9.5, 0.5);  // This is exactly where obstacle 1 is!
-  Eigen::Vector3d goal(9.5, 0.5, 9.5);   // This is exactly where obstacle 2 is!
+  Eigen::Vector3d start(1.5, 1.5, 1.5);
+  Eigen::Vector3d goal(98.5, 98.5, 49.5);
   gen.set_endpoints(start, goal);
 
   // 03. test run_inference with sample parameters
