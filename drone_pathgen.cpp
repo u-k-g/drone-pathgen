@@ -162,13 +162,22 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
   std::vector<Eigen::MatrixX4d> h_polytopes;
   std::vector<Eigen::Vector3d> surface_points;
   map_->getSurf(surface_points);
-  // Use segment_length for both progress and range as a sensible default
+  // Use reasonable parameters that balance safety and feasibility
+  double progress_step = segment_length * 0.8;  // Slightly smaller segments
+  double corridor_range = segment_length * 0.6;  // Conservative but not too tight
   sfc_gen::convexCover(initial_path, surface_points, map_->getOrigin(),
-                       map_->getCorner(), segment_length, segment_length,
+                       map_->getCorner(), progress_step, corridor_range,
                        h_polytopes);
   sfc_gen::shortCut(h_polytopes);
   std::cout << "Generated " << h_polytopes.size()
             << " convex polytopes for the SFC." << std::endl;
+
+  // Validate that we have a reasonable number of polytopes
+  if (h_polytopes.size() < 2) {
+    std::cerr << "ERROR: Too few corridor polytopes generated (" << h_polytopes.size() 
+              << "). Cannot create safe trajectory." << std::endl;
+    return false;
+  }
 
   // Step 3: Setup the GCOPTER optimizer
   gcopter::GCOPTER_PolytopeSFC sfc_optimizer;
@@ -206,5 +215,33 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
 
   std::cout << "Optimization successful! Final cost: " << final_cost
             << std::endl;
+
+  // Step 5: Validate the trajectory against the voxel map
+  std::cout << "Validating trajectory against voxel map..." << std::endl;
+  int violations = 0;
+  double total_duration = out_traj.getTotalDuration();
+  double dt = 0.1;  // Check every 0.1 seconds
+  
+  for (double t = 0.0; t <= total_duration; t += dt) {
+    Eigen::Vector3d pos = out_traj.getPos(t);
+    if (map_->query(pos) != 0) {  // Should be 0 (unoccupied)
+      violations++;
+      if (violations <= 5) {  // Only print first few violations
+        std::cout << "  WARNING: Trajectory violates voxel map at t=" << t 
+                  << ", pos=" << pos.transpose() 
+                  << ", voxel_value=" << static_cast<int>(map_->query(pos)) << std::endl;
+      }
+    }
+  }
+  
+  if (violations > 0) {
+    std::cout << "⚠️  TRAJECTORY VALIDATION FAILED: " << violations 
+              << " violations detected!" << std::endl;
+    std::cout << "   Trajectory passes through " << violations 
+              << " occupied/dilated voxels." << std::endl;
+  } else {
+    std::cout << "✅ Trajectory validation passed - no voxel violations." << std::endl;
+  }
+
   return true;
 }
