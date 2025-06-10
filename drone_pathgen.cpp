@@ -1,9 +1,9 @@
+#include "api/gcopter_api.hpp"
+#include "gcopter/gcopter.hpp"
+#include "gcopter/sfc_gen.hpp"
+#include "gcopter/trajectory.hpp"
 #include <Eigen/Eigen>
 #include <iostream>
-#include "api/gcopter_api.hpp"
-#include "gcopter/sfc_gen.hpp"
-#include "gcopter/gcopter.hpp"
-#include "gcopter/trajectory.hpp"
 
 class DronePathGenerator {
 private:
@@ -25,25 +25,18 @@ public:
     gc_api_.set_endpoints(start, goal, start_vel, goal_vel);
     return true;
   }
-  
-  bool runInference(double planning_timeout,
-                    double time_weight,
-                    double segment_length,
-                    double smoothing_epsilon,
+
+  bool runInference(double planning_timeout, double time_weight,
+                    double segment_length, double smoothing_epsilon,
                     int integral_resolution,
-                    const Eigen::VectorXd& magnitude_bounds,
-                    const Eigen::VectorXd& penalty_weights,
-                    const Eigen::VectorXd& physical_params,
-                    Trajectory<5>& out_traj) {
-    return gc_api_.run_inference(planning_timeout,
-                                time_weight,
-                                segment_length,
-                                smoothing_epsilon,
-                                integral_resolution,
-                                magnitude_bounds,
-                                penalty_weights,
-                                physical_params,
-                                out_traj);
+                    const Eigen::VectorXd &magnitude_bounds,
+                    const Eigen::VectorXd &penalty_weights,
+                    const Eigen::VectorXd &physical_params,
+                    Trajectory<5> &out_traj) {
+    return gc_api_.run_inference(planning_timeout, time_weight, segment_length,
+                                 smoothing_epsilon, integral_resolution,
+                                 magnitude_bounds, penalty_weights,
+                                 physical_params, out_traj);
   }
 };
 
@@ -82,8 +75,33 @@ void GCopterAPI::set_endpoints(const Eigen::Vector3d &start_pos,
                                const Eigen::Vector3d &goal_vel) {
   // Check if map has been configured first
   if (!map_) {
-    std::cout << "Error: Must call configure_map() before set_endpoints()"
+    std::cerr << "Error: Must call configure_map() before set_endpoints()"
               << std::endl;
+    return;
+  }
+
+  // Manually check if start and goal are inside the map boundaries
+  Eigen::Vector3d map_origin = map_->getOrigin();
+  Eigen::Vector3d map_corner = map_->getCorner();
+  bool start_is_inside = (start_pos.array() >= map_origin.array()).all() &&
+                         (start_pos.array() < map_corner.array()).all();
+  bool goal_is_inside = (goal_pos.array() >= map_origin.array()).all() &&
+                        (goal_pos.array() < map_corner.array()).all();
+
+  if (!start_is_inside || !goal_is_inside) {
+    std::cerr << "ERROR: Start or goal position is outside the map bounds."
+              << std::endl;
+    if (!start_is_inside) {
+      std::cerr << "  Start: " << start_pos.transpose() << " is outside."
+                << std::endl;
+    }
+    if (!goal_is_inside) {
+      std::cerr << "  Goal: " << goal_pos.transpose() << " is outside."
+                << std::endl;
+    }
+    std::cerr << "  Map bounds are from " << map_origin.transpose() << " to "
+              << map_corner.transpose() << std::endl;
+    endpoints_set_ = false;
     return;
   }
 
@@ -101,86 +119,92 @@ void GCopterAPI::set_endpoints(const Eigen::Vector3d &start_pos,
   std::cout << "  Goal vel:  " << goal_velocity_.transpose() << std::endl;
 }
 
-bool GCopterAPI::run_inference(
-    double planning_timeout,
-    double time_weight,
-    double segment_length,
-    double smoothing_epsilon,
-    int integral_resolution,
-    const Eigen::VectorXd& magnitude_bounds,
-    const Eigen::VectorXd& penalty_weights,
-    const Eigen::VectorXd& physical_params,
-    Trajectory<5>& out_traj) {
+bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
+                               double segment_length, double smoothing_epsilon,
+                               int integral_resolution,
+                               const Eigen::VectorXd &magnitude_bounds,
+                               const Eigen::VectorXd &penalty_weights,
+                               const Eigen::VectorXd &physical_params,
+                               Trajectory<5> &out_traj) {
 
-    // Step 0: Basic validation checks
-    if (!map_) {
-        std::cerr << "ERROR: Map not configured. Call configure_map() first." << std::endl;
-        return false;
-    }
-    if (!endpoints_set_) {
-        std::cerr << "ERROR: Endpoints not set. Call set_endpoints() first." << std::endl;
-        return false;
-    }
+  // Step 0: Basic validation checks
+  if (!map_) {
+    std::cerr << "ERROR: Map not configured. Call configure_map() first."
+              << std::endl;
+    return false;
+  }
+  if (!endpoints_set_) {
+    std::cerr << "ERROR: Endpoints not set. Call set_endpoints() first."
+              << std::endl;
+    return false;
+  }
 
-    // Step 1: Find an initial geometric path using OMPL
-    std::vector<Eigen::Vector3d> initial_path;
-    const double path_cost = sfc_gen::planPath(start_position_, goal_position_,
-                                               map_->getOrigin(), map_->getCorner(),
-                                               map_.get(), planning_timeout, initial_path);
+  // Step 1: Find an initial geometric path using OMPL
+  std::vector<Eigen::Vector3d> initial_path;
+  const double path_cost = sfc_gen::planPath(
+      start_position_, goal_position_, map_->getOrigin(), map_->getCorner(),
+      map_.get(), planning_timeout, initial_path);
 
-    if (std::isinf(path_cost)) {
-        std::cerr << "ERROR: OMPL failed to find a path in " << planning_timeout << "s." << std::endl;
-        return false;
-    }
-    std::cout << "OMPL found a path with cost: " << path_cost << std::endl;
+  if (std::isinf(path_cost)) {
+    std::cerr << "ERROR: OMPL failed to find a path in " << planning_timeout
+              << "s." << std::endl;
+    return false;
+  }
+  std::cout << "OMPL found a path with cost: " << path_cost << std::endl;
 
-    // Step 2: Generate a Safe Flight Corridor (SFC) around the path
-    std::vector<Eigen::MatrixX4d> h_polytopes;
-    std::vector<Eigen::Vector3d> surface_points;
-    map_->getSurf(surface_points);
-    // Use segment_length for both progress and range as a sensible default
-    sfc_gen::convexCover(initial_path, surface_points,
-                         map_->getOrigin(), map_->getCorner(),
-                         segment_length, segment_length, h_polytopes);
-    sfc_gen::shortCut(h_polytopes);
-    std::cout << "Generated " << h_polytopes.size() << " convex polytopes for the SFC." << std::endl;
+  // Print the initial path (polyline) for visualization
+  std::cout << "POLYLINE" << std::endl;
+  for (const auto &point : initial_path) {
+    std::cout << point.x() << " " << point.y() << " " << point.z() << std::endl;
+  }
 
-    // Step 3: Setup the GCOPTER optimizer
-    gcopter::GCOPTER_PolytopeSFC sfc_optimizer;
+  // Step 2: Generate a Safe Flight Corridor (SFC) around the path
+  std::vector<Eigen::MatrixX4d> h_polytopes;
+  std::vector<Eigen::Vector3d> surface_points;
+  map_->getSurf(surface_points);
+  // Use segment_length for both progress and range as a sensible default
+  sfc_gen::convexCover(initial_path, surface_points, map_->getOrigin(),
+                       map_->getCorner(), segment_length, segment_length,
+                       h_polytopes);
+  sfc_gen::shortCut(h_polytopes);
+  std::cout << "Generated " << h_polytopes.size()
+            << " convex polytopes for the SFC." << std::endl;
 
-    // Define initial and terminal states (P, V, A)
-    Eigen::Matrix3d initial_state, final_state;
-    initial_state.col(0) = start_position_;
-    initial_state.col(1) = start_velocity_;
-    initial_state.col(2) = Eigen::Vector3d::Zero(); // Assume zero initial acceleration
+  // Step 3: Setup the GCOPTER optimizer
+  gcopter::GCOPTER_PolytopeSFC sfc_optimizer;
 
-    final_state.col(0) = goal_position_;
-    final_state.col(1) = goal_velocity_;
-    final_state.col(2) = Eigen::Vector3d::Zero();   // Assume zero final acceleration
+  // Define initial and terminal states (P, V, A)
+  Eigen::Matrix3d initial_state, final_state;
+  initial_state.col(0) = start_position_;
+  initial_state.col(1) = start_velocity_;
+  initial_state.col(2) =
+      Eigen::Vector3d::Zero(); // Assume zero initial acceleration
 
-    if (!sfc_optimizer.setup(time_weight,
-                             initial_state, final_state,
-                             h_polytopes,
-                             segment_length,
-                             smoothing_epsilon,
-                             integral_resolution,
-                             magnitude_bounds,
-                             penalty_weights,
-                             physical_params)) {
-        std::cerr << "ERROR: Optimizer setup failed." << std::endl;
-        return false;
-    }
+  final_state.col(0) = goal_position_;
+  final_state.col(1) = goal_velocity_;
+  final_state.col(2) =
+      Eigen::Vector3d::Zero(); // Assume zero final acceleration
 
-    // Step 4: Run the optimization
-    std::cout << "Running trajectory optimization..." << std::endl;
-    // The second argument is a relative cost tolerance for stopping
-    const double final_cost = sfc_optimizer.optimize(out_traj, 1.0e-5); 
+  if (!sfc_optimizer.setup(time_weight, initial_state, final_state, h_polytopes,
+                           segment_length, smoothing_epsilon,
+                           integral_resolution, magnitude_bounds,
+                           penalty_weights, physical_params)) {
+    std::cerr << "ERROR: Optimizer setup failed." << std::endl;
+    return false;
+  }
 
-    if (std::isinf(final_cost)) {
-        std::cerr << "ERROR: Trajectory optimization failed to converge." << std::endl;
-        return false;
-    }
+  // Step 4: Run the optimization
+  std::cout << "Running trajectory optimization..." << std::endl;
+  // The second argument is a relative cost tolerance for stopping
+  const double final_cost = sfc_optimizer.optimize(out_traj, 1.0e-5);
 
-    std::cout << "Optimization successful! Final cost: " << final_cost << std::endl;
-    return true;
+  if (std::isinf(final_cost)) {
+    std::cerr << "ERROR: Trajectory optimization failed to converge."
+              << std::endl;
+    return false;
+  }
+
+  std::cout << "Optimization successful! Final cost: " << final_cost
+            << std::endl;
+  return true;
 }
