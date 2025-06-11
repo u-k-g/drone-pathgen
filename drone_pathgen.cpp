@@ -162,9 +162,9 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
   std::vector<Eigen::MatrixX4d> h_polytopes;
   std::vector<Eigen::Vector3d> surface_points;
   map_->getSurf(surface_points);
-  // Use balanced parameters for safe but feasible corridors
-  double progress_step = segment_length * 0.9;   // Slightly smaller segments  
-  double corridor_range = segment_length * 1.0;  // Moderate corridor width
+  // Use extremely conservative parameters to avoid obstacles
+  double progress_step = segment_length * 0.5;   // very small segments for maximum control
+  double corridor_range = segment_length * 0.1;  // extremely narrow corridors to force tight following of path
   sfc_gen::convexCover(initial_path, surface_points, map_->getOrigin(),
                        map_->getCorner(), progress_step, corridor_range,
                        h_polytopes);
