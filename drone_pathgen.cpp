@@ -127,7 +127,7 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
                                const Eigen::VectorXd &physical_params,
                                Trajectory<5> &out_traj) {
 
-  // Step 0: Basic validation checks
+  // step 0: basic validation checks
   if (!map_) {
     std::cerr << "ERROR: Map not configured. Call configure_map() first."
               << std::endl;
@@ -139,7 +139,10 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
     return false;
   }
 
-  // Step 1: Find an initial geometric path using OMPL
+  // store physical parameters for later use in control computation
+  physical_params_ = physical_params;
+
+  // step 1: find an initial geometric path using OMPL
   std::vector<Eigen::Vector3d> initial_path;
   const double path_cost = sfc_gen::planPath(
       start_position_, goal_position_, map_->getOrigin(), map_->getCorner(),
@@ -152,19 +155,22 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
   }
   std::cout << "OMPL found a path with cost: " << path_cost << std::endl;
 
-  // Print the initial path (polyline) for visualization
+  // print the initial path (polyline) for visualization
   std::cout << "POLYLINE" << std::endl;
   for (const auto &point : initial_path) {
     std::cout << point.x() << " " << point.y() << " " << point.z() << std::endl;
   }
 
-  // Step 2: Generate a Safe Flight Corridor (SFC) around the path
+  // step 2: generate a Safe Flight Corridor (SFC) around the path
   std::vector<Eigen::MatrixX4d> h_polytopes;
   std::vector<Eigen::Vector3d> surface_points;
   map_->getSurf(surface_points);
-  // Use extremely conservative parameters to avoid obstacles
-  double progress_step = segment_length * 0.5;   // very small segments for maximum control
-  double corridor_range = segment_length * 0.1;  // extremely narrow corridors to force tight following of path
+  // use extremely conservative parameters to avoid obstacles
+  double progress_step =
+      segment_length * 0.5; // very small segments for maximum control
+  double corridor_range =
+      segment_length *
+      0.1; // extremely narrow corridors to force tight following of path
   sfc_gen::convexCover(initial_path, surface_points, map_->getOrigin(),
                        map_->getCorner(), progress_step, corridor_range,
                        h_polytopes);
@@ -172,27 +178,28 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
   std::cout << "Generated " << h_polytopes.size()
             << " convex polytopes for the SFC." << std::endl;
 
-  // Validate that we have a reasonable number of polytopes
+  // validate that we have a reasonable number of polytopes
   if (h_polytopes.size() < 2) {
-    std::cerr << "ERROR: Too few corridor polytopes generated (" << h_polytopes.size() 
-              << "). Cannot create safe trajectory." << std::endl;
+    std::cerr << "ERROR: Too few corridor polytopes generated ("
+              << h_polytopes.size() << "). Cannot create safe trajectory."
+              << std::endl;
     return false;
   }
 
-  // Step 3: Setup the GCOPTER optimizer
+  // step 3: setup the GCOPTER optimizer
   gcopter::GCOPTER_PolytopeSFC sfc_optimizer;
 
-  // Define initial and terminal states (P, V, A)
+  // define initial and terminal states (P, V, A)
   Eigen::Matrix3d initial_state, final_state;
   initial_state.col(0) = start_position_;
   initial_state.col(1) = start_velocity_;
   initial_state.col(2) =
-      Eigen::Vector3d::Zero(); // Assume zero initial acceleration
+      Eigen::Vector3d::Zero(); // assume zero initial acceleration
 
   final_state.col(0) = goal_position_;
   final_state.col(1) = goal_velocity_;
   final_state.col(2) =
-      Eigen::Vector3d::Zero(); // Assume zero final acceleration
+      Eigen::Vector3d::Zero(); // assume zero final acceleration
 
   if (!sfc_optimizer.setup(time_weight, initial_state, final_state, h_polytopes,
                            segment_length, smoothing_epsilon,
@@ -202,9 +209,9 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
     return false;
   }
 
-  // Step 4: Run the optimization
+  // step 4: run the optimization
   std::cout << "Running trajectory optimization..." << std::endl;
-  // The second argument is a relative cost tolerance for stopping
+  // the second argument is a relative cost tolerance for stopping
   const double final_cost = sfc_optimizer.optimize(out_traj, 1.0e-5);
 
   if (std::isinf(final_cost)) {
@@ -216,32 +223,146 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
   std::cout << "Optimization successful! Final cost: " << final_cost
             << std::endl;
 
-  // Step 5: Validate the trajectory against the voxel map
+  // step 5: validate the trajectory against the voxel map
   std::cout << "Validating trajectory against voxel map..." << std::endl;
   int violations = 0;
   double total_duration = out_traj.getTotalDuration();
-  double dt = 0.1;  // Check every 0.1 seconds
-  
+  double dt = 0.1; // check every 0.1 seconds
+
   for (double t = 0.0; t <= total_duration; t += dt) {
     Eigen::Vector3d pos = out_traj.getPos(t);
-    if (map_->query(pos) != 0) {  // Should be 0 (unoccupied)
+    if (map_->query(pos) != 0) { // should be 0 (unoccupied)
       violations++;
-      if (violations <= 5) {  // Only print first few violations
-        std::cout << "  WARNING: Trajectory violates voxel map at t=" << t 
-                  << ", pos=" << pos.transpose() 
-                  << ", voxel_value=" << static_cast<int>(map_->query(pos)) << std::endl;
+      if (violations <= 5) { // only print first few violations
+        std::cout << "  WARNING: Trajectory violates voxel map at t=" << t
+                  << ", pos=" << pos.transpose()
+                  << ", voxel_value=" << static_cast<int>(map_->query(pos))
+                  << std::endl;
       }
     }
   }
-  
+
   if (violations > 0) {
-    std::cout << "⚠️  TRAJECTORY VALIDATION FAILED: " << violations 
+    std::cout << "⚠️  TRAJECTORY VALIDATION FAILED: " << violations
               << " violations detected!" << std::endl;
-    std::cout << "   Trajectory passes through " << violations 
+    std::cout << "   Trajectory passes through " << violations
               << " occupied/dilated voxels." << std::endl;
   } else {
-    std::cout << "✅ Trajectory validation passed - no voxel violations." << std::endl;
+    std::cout << "✅ Trajectory validation passed - no voxel violations."
+              << std::endl;
   }
 
+  // step 6: store results for later queries
+  trajectory_ = out_traj;
+  trajectory_computed_ = true;
+  optimization_cost_ = final_cost;
+
+  // initialize flatness mapper with physical parameters
+  flatness_map_.reset(physical_params(0),  // mass
+                      physical_params(1),  // gravitational acceleration
+                      physical_params(2),  // horizontal drag coeff
+                      physical_params(3),  // vertical drag coeff
+                      physical_params(4),  // parasitic drag coeff
+                      physical_params(5)); // speed smooth factor
+
   return true;
+}
+
+bool GCopterAPI::getStateAtTime(double time, DroneState &state) const {
+  if (!trajectory_computed_) {
+    std::cerr << "ERROR: No trajectory computed. Call run_inference() first."
+              << std::endl;
+    return false;
+  }
+
+  double total_duration = trajectory_.getTotalDuration();
+  if (time < 0.0 || time > total_duration) {
+    std::cerr << "ERROR: Time " << time << " is outside trajectory bounds [0, "
+              << total_duration << "]" << std::endl;
+    return false;
+  }
+
+  state.time = time;
+  state.position = trajectory_.getPos(time);
+  state.velocity = trajectory_.getVel(time);
+  state.acceleration = trajectory_.getAcc(time);
+  state.jerk = trajectory_.getJer(time);
+
+  return true;
+}
+
+bool GCopterAPI::getControlInputs(double time, ControlInputs &inputs,
+                                  double yaw, double yaw_rate) const {
+  if (!trajectory_computed_) {
+    std::cerr << "ERROR: No trajectory computed. Call run_inference() first."
+              << std::endl;
+    return false;
+  }
+
+  double total_duration = trajectory_.getTotalDuration();
+  if (time < 0.0 || time > total_duration) {
+    std::cerr << "ERROR: Time " << time << " is outside trajectory bounds [0, "
+              << total_duration << "]" << std::endl;
+    return false;
+  }
+
+  // get trajectory derivatives at time t
+  Eigen::Vector3d vel = trajectory_.getVel(time);
+  Eigen::Vector3d acc = trajectory_.getAcc(time);
+  Eigen::Vector3d jer = trajectory_.getJer(time);
+
+  // compute control inputs using flatness mapping
+  flatness_map_.forward(vel, acc, jer, yaw, yaw_rate, inputs.thrust,
+                        inputs.quaternion, inputs.angular_velocity);
+
+  // store the input parameters
+  inputs.yaw_angle = yaw;
+  inputs.yaw_rate = yaw_rate;
+
+  return true;
+}
+
+bool GCopterAPI::getStatistics(TrajectoryStatistics &stats) const {
+  if (!trajectory_computed_) {
+    std::cerr << "ERROR: No trajectory computed. Call run_inference() first."
+              << std::endl;
+    return false;
+  }
+
+  stats.total_duration = trajectory_.getTotalDuration();
+  stats.num_pieces = trajectory_.getPieceNum();
+  stats.optimization_cost = optimization_cost_;
+  stats.max_velocity = trajectory_.getMaxVelRate();
+  stats.max_acceleration = trajectory_.getMaxAccRate();
+  stats.start_pos = start_position_;
+  stats.goal_pos = goal_position_;
+
+  return true;
+}
+
+void GCopterAPI::print_voxel_map() const {
+  if (!map_) {
+    std::cerr << "ERROR: No map configured. Call configure_map() first."
+              << std::endl;
+    return;
+  }
+
+  const auto size = map_->getSize();
+  const auto &voxels = map_->getVoxels();
+
+  std::cout << "VoxelMap Size: " << size.transpose() << std::endl;
+  std::cout << "Origin: " << map_->getOrigin().transpose() << std::endl;
+  std::cout << "Scale: " << map_->getScale() << std::endl;
+  std::cout << "Corner: " << map_->getCorner().transpose() << std::endl;
+
+  for (int z = 0; z < size(2); ++z) {
+    std::cout << "Layer " << z << ":\n";
+    for (int y = 0; y < size(1); ++y) {
+      for (int x = 0; x < size(0); ++x) {
+        int idx = x + y * size(0) + z * size(0) * size(1);
+        std::cout << static_cast<int>(voxels[idx]);
+      }
+      std::cout << '\n';
+    }
+  }
 }

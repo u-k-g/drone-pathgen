@@ -63,4 +63,5 @@ build/
 
 .cache/
 .cursor/
+enhanced_output.txt
 voxel_output.txt
