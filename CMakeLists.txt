@@ -25,7 +25,7 @@ include_directories(/opt/homebrew/include/eigen3)
 include_directories(${OMPL_INCLUDE_DIRS})
 
 # Add library
-add_library(drone_pathgen drone_pathgen.cpp)
+add_library(drone_pathgen src/drone_pathgen.cpp)
 
 # Link libraries
 target_link_libraries(drone_pathgen 
@@ -40,7 +40,7 @@ target_compile_options(drone_pathgen PRIVATE ${OMPL_CFLAGS_OTHER})
 # For debugging
 set(CMAKE_BUILD_TYPE Debug)
 
-add_executable(test test.cpp)
+add_executable(test src/test.cpp)
 target_link_libraries(test
     drone_pathgen
     Eigen3::Eigen

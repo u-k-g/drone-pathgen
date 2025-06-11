@@ -1,4 +1,7 @@
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
 
 # Prerequisites
 *.d
@@ -43,9 +46,7 @@ Makefile
 compile_commands.json
 
 
-.vscode/
 
-.clangd
 
 .venv/
 __pycache__/
@@ -56,12 +57,22 @@ dist/
 build/
 *.egg-info/
 
-*~
+# Editor and IDE files
+.vscode/
+.idea/
 *.swp
+*.swo
+*~
 
+# Project specific
 .commitlintrc
-
 .cache/
 .cursor/
-enhanced_output.txt
-voxel_output.txt
+.clangd
+
+# Output files
+output/
+
+# Temporary files
+*.tmp
+*.temp

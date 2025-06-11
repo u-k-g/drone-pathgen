@@ -15,6 +15,24 @@ A Python interface for advanced drone trajectory planning that generates smooth,
 - **Python Native**: Seamless integration with NumPy, SciPy, and other Python scientific libraries
 - **Not ROS Dependent**: Doesn't require ROS
 
+## Quick Start
+
+### Building the Project
+
+```fish
+# Quick build and test (recommended)
+./scripts/build.sh --test
+
+# Build, test, and visualize in one command
+./scripts/build.sh --test --visualize
+
+# Or manually step by step
+mkdir -p build && cd build
+cmake .. && make
+./test > ../output/enhanced_output.txt
+cd .. && uv run python visualization/visualize_open3d.py
+```
+
 ## Usage
 
 The library provides a simple workflow for drone path planning:

@@ -188,14 +188,37 @@ def visualize_with_open3d(voxel_array, trajectory_points=None, polyline_points=N
 
 if __name__ == "__main__":
     # check if test output file exists, if not run from console output
-    try:
-        with open("voxel_output.txt", "r") as f:
-            output_text = f.read()
-        print("Loaded data from voxel_output.txt")
-    except FileNotFoundError:
-        print("Error: voxel_output.txt not found.")
-        print("Please run the C++ test executable first:")
-        print("  cd build && ./test > ../voxel_output.txt")
+    import sys
+    import os
+    
+    # try different possible file locations
+    possible_files = [
+        "output/enhanced_output.txt",
+        "output/voxel_output.txt", 
+        "voxel_output.txt",
+        "enhanced_output.txt"
+    ]
+    
+    output_text = None
+    used_file = None
+    
+    for filepath in possible_files:
+        try:
+            with open(filepath, "r") as f:
+                output_text = f.read()
+            used_file = filepath
+            print(f"Loaded data from {filepath}")
+            break
+        except FileNotFoundError:
+            continue
+    
+    if output_text is None:
+        print("Error: No test output file found.")
+        print("Tried looking for:")
+        for f in possible_files:
+            print(f"  - {f}")
+        print("\nPlease run the C++ test executable first:")
+        print("  cd build && ./test > ../output/enhanced_output.txt")
         exit(1)
     
     # parse the data

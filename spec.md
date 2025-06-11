@@ -20,6 +20,7 @@ The absolute top priority is to:
 - create a cpp api to do some basic calls, (eg. configure map, set endpoints, run inference, visualize results)
 
 - wrap it in a pybind11 library so that we can call it in python
+
 ### Main Objectives (explained in more depth)
 
 1. **Create a C++ API** with some basic functions. some examples are:
