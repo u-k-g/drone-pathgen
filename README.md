@@ -2,6 +2,8 @@
 
 A Python interface for advanced drone trajectory planning that generates smooth, collision-free flight paths in complex 3D environments.
 
+<img width="1165" alt="image" src="https://github.com/user-attachments/assets/20b018d9-9d51-4967-9a82-de7ea06e38cb" />
+
 ## Features
 
 - **Smart Path Planning**: Automatically generates optimal trajectories that avoid obstacles while considering real drone physics and dynamics
@@ -34,3 +36,4 @@ Perfect for researchers, hobbyists, and professionals who need reliable drone pa
 - **Competition Flying**: Plan optimal racing lines and stunt sequences for drone competitions
 - **Mapping and Surveying**: Generate systematic flight patterns for aerial photography and LiDAR scanning
 - **Indoor Navigation**: Navigate drones through buildings, warehouses, and confined spaces
+
