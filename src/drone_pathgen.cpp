@@ -24,15 +24,15 @@ void GCopterAPI::configure_map(
   std::cout << "map origin: " << map_->getOrigin().transpose() << std::endl;
   std::cout << "map corner: " << map_->getCorner().transpose() << std::endl;
   std::cout << "voxel scale: " << map_->getScale() << std::endl;
-  
+
   for (size_t i = 0; i < obstacle_points.size(); ++i) {
-    const auto& obs = obstacle_points[i];
+    const auto &obs = obstacle_points[i];
     // convert world coordinate to voxel index
     Eigen::Vector3d voxel_pos = (obs - map_->getOrigin()) / map_->getScale();
     Eigen::Vector3i voxel_idx = voxel_pos.cast<int>();
     uint8_t voxel_val = map_->query(obs);
-    
-    std::cout << "  obstacle " << i << ": world=" << obs.transpose() 
+
+    std::cout << "  obstacle " << i << ": world=" << obs.transpose()
               << " → voxel_pos=" << voxel_pos.transpose()
               << " → voxel_idx=" << voxel_idx.transpose()
               << " → query_result=" << static_cast<int>(voxel_val) << std::endl;
@@ -128,12 +128,12 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
 
   // find an initial geometric path using ompl
   std::vector<Eigen::Vector3d> initial_path;
-  
+
   std::cout << "running ompl path planning..." << std::endl;
   std::cout << "  start: " << start_position_.transpose() << std::endl;
   std::cout << "  goal: " << goal_position_.transpose() << std::endl;
   std::cout << "  timeout: " << planning_timeout << "s" << std::endl;
-  
+
   const double path_cost = sfc_gen::planPath(
       start_position_, goal_position_, map_->getOrigin(), map_->getCorner(),
       map_.get(), planning_timeout, initial_path);
@@ -150,10 +150,10 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
   std::vector<Eigen::MatrixX4d> h_polytopes;
   std::vector<Eigen::Vector3d> surface_points;
   map_->getSurf(surface_points);
-  
+
   double progress_step = 7.0;
   double corridor_range = 3.0;
-  
+
   std::cout << "corridor generation parameters:" << std::endl;
   std::cout << "  progress_step: " << progress_step << "m" << std::endl;
   std::cout << "  corridor_range: " << corridor_range << "m" << std::endl;
@@ -178,15 +178,16 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
   std::cout << "validating initial ompl path against voxel map..." << std::endl;
   int initial_violations = 0;
   for (size_t i = 0; i < initial_path.size(); ++i) {
-    const auto& pos = initial_path[i];
+    const auto &pos = initial_path[i];
     uint8_t voxel_val = map_->query(pos);
     if (voxel_val != 0) {
       initial_violations++;
     }
   }
   if (initial_violations > 0) {
-    std::cout << "⚠️  initial ompl path has " << initial_violations 
-              << " violations! this suggests ompl planning failed." << std::endl;
+    std::cout << "⚠️  initial ompl path has " << initial_violations
+              << " violations! this suggests ompl planning failed."
+              << std::endl;
   } else {
     std::cout << "✅ initial ompl path is collision-free." << std::endl;
   }
@@ -205,9 +206,9 @@ bool GCopterAPI::run_inference(double planning_timeout, double time_weight,
   final_state.col(2) = Eigen::Vector3d::Zero(); // zero final acceleration
 
   if (!sfc_optimizer.setup(time_weight, initial_state, final_state, h_polytopes,
-                           INFINITY, smoothing_epsilon,
-                           integral_resolution, magnitude_bounds,
-                           penalty_weights, physical_params)) {
+                           INFINITY, smoothing_epsilon, integral_resolution,
+                           magnitude_bounds, penalty_weights,
+                           physical_params)) {
     std::cerr << "error: optimizer setup failed." << std::endl;
     return false;
   }
@@ -360,30 +361,29 @@ void GCopterAPI::print_voxel_map() const {
   std::cout << "scale: " << map_->getScale() << std::endl;
   std::cout << "corner: " << map_->getCorner().transpose() << std::endl;
 
-      for (int z = 0; z < size(2); ++z) {
-      std::cout << "layer " << z << ":\n";
-      for (int y = 0; y < size(1); ++y) {
-        for (int x = 0; x < size(0); ++x) {
-          int idx = x + y * size(0) + z * size(0) * size(1);
-          std::cout << static_cast<int>(voxels[idx]);
-        }
-        std::cout << '\n';
+  for (int z = 0; z < size(2); ++z) {
+    std::cout << "layer " << z << ":\n";
+    for (int y = 0; y < size(1); ++y) {
+      for (int x = 0; x < size(0); ++x) {
+        int idx = x + y * size(0) + z * size(0) * size(1);
+        std::cout << static_cast<int>(voxels[idx]);
       }
+      std::cout << '\n';
     }
+  }
 }
 
 bool GCopterAPI::get_visualization_data(
     std::vector<Eigen::Vector3d> &trajectory_points,
-    std::vector<std::vector<std::vector<int>>> &voxel_data,
-    double &voxel_size,
-    Eigen::Vector3d &start_pos,
-    Eigen::Vector3d &goal_pos,
+    std::vector<std::vector<std::vector<int>>> &voxel_data, double &voxel_size,
+    Eigen::Vector3d &start_pos, Eigen::Vector3d &goal_pos,
     bool show_initial_route,
     std::vector<Eigen::Vector3d> *initial_route) const {
-  
+
   // check if we have computed trajectory and map
   if (!trajectory_computed_ || !map_) {
-    std::cerr << "error: no trajectory computed or map not configured." << std::endl;
+    std::cerr << "error: no trajectory computed or map not configured."
+              << std::endl;
     return false;
   }
 
@@ -391,7 +391,7 @@ bool GCopterAPI::get_visualization_data(
   trajectory_points.clear();
   double total_duration = trajectory_.getTotalDuration();
   double dt = 0.1;
-  
+
   for (double t = 0.0; t <= total_duration; t += dt) {
     trajectory_points.push_back(trajectory_.getPos(t));
   }
@@ -404,7 +404,7 @@ bool GCopterAPI::get_visualization_data(
   const auto size = map_->getSize();
   const auto &voxels = map_->getVoxels();
   voxel_size = map_->getScale();
-  
+
   // convert to 3d vector format expected by python
   voxel_data.resize(size(2));
   for (int z = 0; z < size(2); ++z) {
@@ -432,10 +432,12 @@ bool GCopterAPI::get_visualization_data(
 
 bool GCopterAPI::get_initial_route(std::vector<Eigen::Vector3d> &route) const {
   if (initial_route_.empty()) {
-    std::cerr << "error: no initial route available. call run_inference() first." << std::endl;
+    std::cerr
+        << "error: no initial route available. call run_inference() first."
+        << std::endl;
     return false;
   }
-  
+
   route = initial_route_;
   return true;
 }
