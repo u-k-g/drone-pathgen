@@ -2,7 +2,7 @@
 
 A Python interface for advanced drone trajectory planning that generates smooth, collision-free flight paths in complex 3D environments.
 
-<img width="1165" alt="image" src="https://github.com/user-attachments/assets/20b018d9-9d51-4967-9a82-de7ea06e38cb" />
+<img width="459" alt="image" src="https://github.com/user-attachments/assets/aec72152-8c2c-4bcf-8da1-df6a68c17cd9" />
 
 ## Features
 
