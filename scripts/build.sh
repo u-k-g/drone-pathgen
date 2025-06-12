@@ -21,9 +21,9 @@ echo "✅ build complete!"
 
 # optionally run test if requested
 if [ "$1" = "--test" ] || [ "$1" = "-t" ]; then
-    echo "🧪 running python test..."
+    echo "🧪 running python example..."
     cd ..
-    uv run python src/test_wrapper.py
+    uv run python src/example_usage.py
 fi
 
 echo "🎉 all done!" 

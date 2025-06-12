@@ -65,7 +65,7 @@ PYBIND11_MODULE(gcopter_cpp, m) {
           py::arg("segment_length"), py::arg("smoothing_epsilon"),
           py::arg("integral_resolution"), py::arg("magnitude_bounds"),
           py::arg("penalty_weights"), py::arg("physical_params"),
-          "plan path and optimize trajectory; returns True on success")
+          "plan path and optimize trajectory; returns true on success")
       .def("get_state_at_time", &GCopterAPI::getStateAtTime, py::arg("time"),
            py::arg("state"), "retrieve drone kinematic state at time")
       .def("get_control_inputs", &GCopterAPI::getControlInputs,
@@ -101,7 +101,7 @@ PYBIND11_MODULE(gcopter_cpp, m) {
             }
           },
           py::arg("show_initial_route") = false,
-          "Extract trajectory and voxel data for open3d visualization. "
-          "Returns a tuple: (success, trajectory_points, voxel_data, "
+          "extract trajectory and voxel data for open3d visualization. "
+          "returns a tuple: (success, trajectory_points, voxel_data, "
           "voxel_size, start_pos, goal_pos[, initial_route])");
 } 
