@@ -41,14 +41,6 @@ target_compile_options(drone_pathgen PRIVATE ${OMPL_CFLAGS_OTHER})
 # For debugging
 set(CMAKE_BUILD_TYPE Debug)
 
-add_executable(test src/test.cpp)
-target_link_libraries(test
-    drone_pathgen
-    Eigen3::Eigen
-    ${Boost_LIBRARIES}
-    ${OMPL_LIBRARIES}
-)
-
 # Add pybind11 module
 pybind11_add_module(gcopter_cpp src/pybindings.cpp)
 target_link_libraries(gcopter_cpp PRIVATE 

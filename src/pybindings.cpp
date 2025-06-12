@@ -76,8 +76,32 @@ PYBIND11_MODULE(gcopter_cpp, m) {
            py::arg("stats"), "retrieve trajectory statistics")
       .def("print_voxel_map", &GCopterAPI::print_voxel_map,
            "print voxel occupancy grid to stdout")
-      .def("get_visualization_data", &GCopterAPI::get_visualization_data,
-           py::arg("trajectory_points"), py::arg("voxel_data"),
-           py::arg("voxel_size"), py::arg("start_pos"), py::arg("goal_pos"),
-           "extract trajectory and voxel data for open3d visualization");
+      .def("get_initial_route", &GCopterAPI::get_initial_route,
+           py::arg("route"), "get the initial OMPL path before optimization")
+      .def(
+          "get_visualization_data",
+          [](const GCopterAPI &self, bool show_initial_route = false) {
+            std::vector<Eigen::Vector3d> trajectory_points;
+            std::vector<std::vector<std::vector<int>>> voxel_data;
+            double voxel_size;
+            Eigen::Vector3d start_pos;
+            Eigen::Vector3d goal_pos;
+            std::vector<Eigen::Vector3d> initial_route;
+            
+            bool success = self.get_visualization_data(
+                trajectory_points, voxel_data, voxel_size, start_pos, goal_pos,
+                show_initial_route, show_initial_route ? &initial_route : nullptr);
+                
+            if (show_initial_route) {
+              return py::make_tuple(success, trajectory_points, voxel_data,
+                                    voxel_size, start_pos, goal_pos, initial_route);
+            } else {
+              return py::make_tuple(success, trajectory_points, voxel_data,
+                                    voxel_size, start_pos, goal_pos);
+            }
+          },
+          py::arg("show_initial_route") = false,
+          "Extract trajectory and voxel data for open3d visualization. "
+          "Returns a tuple: (success, trajectory_points, voxel_data, "
+          "voxel_size, start_pos, goal_pos[, initial_route])");
 } 

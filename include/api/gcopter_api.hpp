@@ -139,13 +139,25 @@ public:
    * @param voxel_size        Voxel size for scaling 
    * @param start_pos         Output parameter for start position
    * @param goal_pos          Output parameter for goal position
+   * @param show_initial_route Flag to include initial OMPL route in output
+   * @param initial_route     Output parameter for initial route (if requested)
    * @return                  True if successful, false if no trajectory computed
    */
   bool get_visualization_data(std::vector<Eigen::Vector3d> &trajectory_points,
                               std::vector<std::vector<std::vector<int>>> &voxel_data,
                               double &voxel_size,
                               Eigen::Vector3d &start_pos,
-                              Eigen::Vector3d &goal_pos) const;
+                              Eigen::Vector3d &goal_pos,
+                              bool show_initial_route = false,
+                              std::vector<Eigen::Vector3d> *initial_route = nullptr) const;
+
+  /**
+   * Get the initial route.
+   *
+   * @param route   Output parameter to receive the initial route
+   * @return        True if successful, false if no route computed
+   */
+  bool get_initial_route(std::vector<Eigen::Vector3d> &route) const;
 
 private:
   std::unique_ptr<voxel_map::VoxelMap> map_;
@@ -163,4 +175,7 @@ private:
 
   // flatness mapper for control computation
   mutable flatness::FlatnessMap flatness_map_;
+
+  // initial route
+  std::vector<Eigen::Vector3d> initial_route_;
 };
