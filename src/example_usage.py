@@ -1,68 +1,85 @@
 #!/usr/bin/env python3
-"""
-example demonstrating how to use the GCOPTER Python wrapper for drone trajectory planning.
-"""
+"""a complete example demonstrating how to use the gcopier python wrapper."""
 
 import sys
-
 import numpy as np
 
-# add the build directory to path to import our module
+# add the build directory to the python path to import our custom module
 sys.path.append("build")
-import gcopter_cpp
+try:
+    import gcopter_cpp
+except ImportError:
+    print("error: could not import 'gcopter_cpp' module.")
+    print("please build the project first by running './scripts/build.sh'")
+    sys.exit(1)
 
 
 def main():
-    """Example demonstrating how to use the gcopter_cpp Python wrapper.
-
-    Steps shown:
-    1. Configure a voxel map with obstacles
-    2. Set start and goal endpoints
-    3. Run trajectory optimization
-    4. Query statistics and state samples
-    5. Visualize map + trajectory in Open3D (if installed)
     """
-    print("🔧 Creating GCopterAPI instance...")
+    example demonstrating the full workflow for drone trajectory planning.
+
+    steps:
+    1.  create a `GCopterAPI` instance.
+    2.  configure a 3d voxel map with obstacles.
+    3.  set start and goal endpoints for the trajectory.
+    4.  define optimization parameters and physical constraints.
+    5.  run the trajectory optimization pipeline.
+    6.  query and print statistics and state samples from the result.
+    7.  visualize the map and trajectory in 3d using open3d.
+    """
+    print(" GCOPTER Python Wrapper Example ".center(80, "-"))
+    print("🔧 creating GCopterAPI instance...")
     api = gcopter_cpp.GCopterAPI()
 
-    # setup map with obstacles
+    # step 1: configure the 3d map
+    # ------------------------------------
+    # define the map dimensions: 20x20x10 voxels
     map_size = np.array([20, 20, 10], dtype=np.int32)
+    # define the world coordinate of the map's origin
     origin = np.array([-5.0, -5.0, 0.0])
+    # define the size of each voxel (0.5 meters)
     voxel_scale = 0.5
 
-    # add obstacles that block the direct path
+    # add some obstacles to block the direct path between start and goal
     obstacles = [
-        np.array([0.0, 0.0, 1.0]),
-        np.array([-1.0, -1.0, 1.0]),
-        np.array([1.0, 1.0, 1.0]),
+        np.array([0.0, 0.0, 1.0]),  # a pillar in the center
+        np.array([-1.0, -1.0, 1.0]),  # a side obstacle
+        np.array([1.0, 1.0, 1.0]),  # another side obstacle
     ]
 
-    print("🗺️  configuring map...")
+    print("🗺️  configuring map with obstacles...")
+    # dilation_radius adds a safety margin around obstacles
     api.configure_map(map_size, origin, voxel_scale, obstacles, 2)
 
-    # set start and goal positions
+    # step 2: set start and goal positions
+    # ------------------------------------
     start_pos = np.array([-3.0, -3.0, 1.0])
     goal_pos = np.array([3.0, 3.0, 1.0])
-
+    # note: you can also provide optional start/goal velocities, e.g.:
+    # start_vel = np.array([0.0, 0.0, 0.0])
+    # api.set_endpoints(start_pos, goal_pos, start_vel, goal_vel)
     print("🎯 setting endpoints...")
     api.set_endpoints(start_pos, goal_pos)
 
-    # optimization parameters
-    planning_timeout = 20.0
-    time_weight = 50.0
-    segment_length = 2.0
-    smoothing_epsilon = 1e-3
-    integral_resolution = 8
+    # step 3: define optimization parameters
+    # ------------------------------------
+    planning_timeout = 20.0  # max time for the initial path planner (ompl)
+    time_weight = 50.0  # penalty on total flight time (higher = faster trajectory)
+    segment_length = 2.0  # desired length of each corridor segment
+    smoothing_epsilon = 1e-3  # epsilon for safe corridor smoothing
+    integral_resolution = 8  # number of points per segment for penalty checks
 
     # magnitude bounds: [v_max, omega_max, theta_max, thrust_min, thrust_max]
     magnitude_bounds = np.array([5.0, 10.0, np.pi / 3, 5.0, 15.0])
 
-    # penalty weights: [pos, vel, omega, theta, thrust]
-    penalty_weights = np.array([1.0, 1.0, 1.0, 1.0, 1.0])  # back to normal values
+    # penalty weights for optimizer: [pos, vel, omega, theta, thrust]
+    penalty_weights = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
 
-    # physical params: [mass, grav, horiz_drag, vert_drag, parasitic_drag, speed_smooth]
+    # physical params: [mass, gravity, horiz_drag, vert_drag, parasitic_drag, speed_smooth]
     physical_params = np.array([1.0, 9.81, 0.0, 0.0, 0.0, 0.01])
 
+    # step 4: run the optimization
+    # ------------------------------------
     print("🚁 running trajectory optimization...")
     success = api.run_inference(
         planning_timeout,
@@ -81,39 +98,49 @@ def main():
 
     print("✅ trajectory optimization successful!")
 
-    # get trajectory statistics
+    # step 5: get and print trajectory statistics
+    # ------------------------------------
     stats = gcopter_cpp.TrajectoryStatistics()
     if api.get_statistics(stats):
-        print(f"📊 trajectory duration: {stats.total_duration:.2f}s")
-        print(f"   pieces: {stats.num_pieces}, cost: {stats.optimization_cost:.4f}")
+        print("\n--- trajectory statistics ---")
+        print(f"   duration: {stats.total_duration:.2f}s")
+        print(f"   num segments: {stats.num_pieces}")
+        print(f"   optimization cost: {stats.optimization_cost:.4f}")
         print(f"   max velocity: {stats.max_velocity:.2f} m/s")
         print(f"   max acceleration: {stats.max_acceleration:.2f} m/s²")
+        print("---------------------------\n")
 
-    # get state at midpoint
+    # get state at the halfway point of the trajectory
     state = gcopter_cpp.DroneState()
     test_time = stats.total_duration * 0.5
     if api.get_state_at_time(test_time, state):
-        print(f"🎯 state at t={test_time:.2f}s:")
-        print(
-            f"   position: [{state.position[0]:.2f}, {state.position[1]:.2f}, {state.position[2]:.2f}]"
-        )
-        print(
-            f"   velocity: [{state.velocity[0]:.2f}, {state.velocity[1]:.2f}, {state.velocity[2]:.2f}]"
-        )
+        print(f"querying state at t={test_time:.2f}s:")
+        pos = state.position
+        vel = state.velocity
+        print(f"   position: [{pos[0]:.2f}, {pos[1]:.2f}, {pos[2]:.2f}]")
+        print(f"   velocity: [{vel[0]:.2f}, {vel[1]:.2f}, {vel[2]:.2f}]")
 
-    # visualize with Open3D
-    visualize_trajectory(api)
+    # step 6: visualize the result
+    # ------------------------------------
+    visualize_trajectory(api, origin)
 
 
-def visualize_trajectory(api):
-    """visualize the trajectory and map using Open3D."""
+def visualize_trajectory(api: gcopter_cpp.GCopterAPI, origin: np.ndarray):
+    """
+    visualizes the trajectory, obstacles, and flight corridors using open3d.
+    
+    this function will be skipped if open3d is not installed.
+    """
     try:
         import open3d as o3d
     except ImportError:
-        print("⚠️  Open3D not installed; skipping visualization.")
+        print("\n⚠️  open3d not installed. skipping visualization.")
+        print("   install with: 'pip install open3d'")
         return
 
-    # get visualization data
+    print("\n🚀 launching open3d visualizer...")
+
+    # retrieve all necessary data from the api
     result = api.get_visualization_data(show_initial_route=True)
     (
         success,
@@ -126,107 +153,87 @@ def visualize_trajectory(api):
     ) = result
 
     if not success:
-        print("❌ failed to get visualization data")
+        print("❌ failed to get visualization data from api.")
         return
 
-    print(f"📈 visualizing {len(trajectory_points)} trajectory points")
-
-    # create voxel meshes
-    def build_voxel_mesh(indices, voxel_size, origin, color):
-        cube = o3d.geometry.TriangleMesh.create_box(voxel_size, voxel_size, voxel_size)
+    # --- helper function to build voxel meshes ---
+    def build_voxel_mesh(indices, voxel_size_val, origin, color):
+        """creates a single trianglemesh from a list of voxel indices."""
+        # create a single cube mesh to be copied for each voxel
+        cube = o3d.geometry.TriangleMesh.create_box(
+            width=voxel_size_val, height=voxel_size_val, depth=voxel_size_val
+        )
         cube.compute_vertex_normals()
         cube.paint_uniform_color(color)
 
         mesh = o3d.geometry.TriangleMesh()
         for x, y, z in indices:
+            # create a copy and translate it to the correct voxel position
             cube_copy = cube.translate(
-                origin + np.array([x, y, z]) * voxel_size, relative=False
+                origin + np.array([x, y, z]) * voxel_size_val, relative=False
             )
             mesh += cube_copy
         return mesh
 
-    # collect voxel indices
-    occupied_indices = []
-    dilated_indices = []
-    for z in range(len(voxel_data)):
-        for y in range(len(voxel_data[z])):
-            for x in range(len(voxel_data[z][y])):
-                val = voxel_data[z][y][x]
-                if val == 1:
+    # --- collect voxel indices by type ---
+    occupied_indices, dilated_indices = [], []
+    for z, layer in enumerate(voxel_data):
+        for y, row in enumerate(layer):
+            for x, val in enumerate(row):
+                if val == 1:  # occupied
                     occupied_indices.append((x, y, z))
-                elif val == 2:
+                elif val == 2:  # dilated
                     dilated_indices.append((x, y, z))
 
-    # build geometries
+    # --- create geometries for visualization ---
     geometries = []
 
-    # obstacle voxels (red)
+    # create red mesh for obstacles
     if occupied_indices:
         occupied_mesh = build_voxel_mesh(
-            occupied_indices,
-            voxel_size,
-            np.array([-5.0, -5.0, 0.0]),
-            [1, 0, 0],
+            occupied_indices, voxel_size, origin, [0.8, 0.2, 0.2]
         )
         geometries.append(occupied_mesh)
 
-    # dilated voxels (yellow)
+    # create yellow mesh for safety dilation
     if dilated_indices:
         dilated_mesh = build_voxel_mesh(
-            dilated_indices,
-            voxel_size,
-            np.array([-5.0, -5.0, 0.0]),
-            [1, 1, 0],
+            dilated_indices, voxel_size, origin, [0.9, 0.9, 0.2]
         )
         geometries.append(dilated_mesh)
 
-    # trajectory line (blue)
+    # create blue line for the final optimized trajectory
     if len(trajectory_points) >= 2:
-        pts = np.array(trajectory_points)
-        lines = [[i, i + 1] for i in range(len(pts) - 1)]
-        trajectory_line = o3d.geometry.LineSet(
-            points=o3d.utility.Vector3dVector(pts),
-            lines=o3d.utility.Vector2iVector(lines),
+        lineset = o3d.geometry.LineSet(
+            points=o3d.utility.Vector3dVector(np.array(trajectory_points)),
+            lines=o3d.utility.Vector2iVector(
+                [[i, i + 1] for i in range(len(trajectory_points) - 1)]
+            ),
         )
-        trajectory_line.paint_uniform_color([0, 0, 1])
-        geometries.append(trajectory_line)
+        lineset.paint_uniform_color([0.2, 0.2, 0.8])
+        geometries.append(lineset)
 
-    # initial route line (green)
+    # create green line for the initial, un-optimized route
     if len(initial_route) >= 2:
-        pts = np.array(initial_route)
-        lines = [[i, i + 1] for i in range(len(pts) - 1)]
-        route_line = o3d.geometry.LineSet(
-            points=o3d.utility.Vector3dVector(pts),
-            lines=o3d.utility.Vector2iVector(lines),
+        lineset = o3d.geometry.LineSet(
+            points=o3d.utility.Vector3dVector(np.array(initial_route)),
+            lines=o3d.utility.Vector2iVector(
+                [[i, i + 1] for i in range(len(initial_route) - 1)]
+            ),
         )
-        route_line.paint_uniform_color([0, 1, 0])
-        geometries.append(route_line)
+        lineset.paint_uniform_color([0.2, 0.8, 0.2])
+        geometries.append(lineset)
 
-    # start/goal spheres
-    start_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=voxel_size * 0.5)
-    start_sphere.translate(start_pos)
-    start_sphere.paint_uniform_color([0, 1, 0])
-    start_sphere.compute_vertex_normals()
-
-    goal_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=voxel_size * 0.5)
-    goal_sphere.translate(goal_pos)
-    goal_sphere.paint_uniform_color([1, 0, 1])
-    goal_sphere.compute_vertex_normals()
-
+    # add spheres for start and goal points
+    start_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=voxel_size)
+    start_sphere.translate(start_pos).paint_uniform_color([0.2, 0.8, 0.2])
+    goal_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=voxel_size)
+    goal_sphere.translate(goal_pos).paint_uniform_color([0.8, 0.2, 0.2])
     geometries.extend([start_sphere, goal_sphere])
 
-    print("👀 launching Open3D visualizer...")
-    print("   🟢 green line: initial OMPL path")
-    print("   🔵 blue line: optimized trajectory")
-    print("   🔴 red cubes: obstacles")
-    print("   🟡 yellow cubes: safety dilation")
-    print("   🟢 green sphere: start position")
-    print("   🟣 magenta sphere: goal position")
-
+    # --- run the visualizer ---
     o3d.visualization.draw_geometries(geometries)
 
 
 if __name__ == "__main__":
-    print("🚀 GCOPTER Python wrapper example")
     main()
-    print("✅ example complete")

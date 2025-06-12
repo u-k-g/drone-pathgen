@@ -8,57 +8,70 @@
 #include <string>
 #include <vector>
 
-// structure to hold drone state at any time
+// an api for the gcopter library, providing a high-level interface for
+// trajectory planning. this class manages the state of the map, endpoints,
+// and optimization parameters. it is not dependent on ros.
+
+// holds the complete kinematic state of the drone at a specific time.
 struct DroneState {
-  Eigen::Vector3d position;
-  Eigen::Vector3d velocity;
-  Eigen::Vector3d acceleration;
-  Eigen::Vector3d jerk;
-  double time;
+  Eigen::Vector3d position;     // position [m]
+  Eigen::Vector3d velocity;     // velocity [m/s]
+  Eigen::Vector3d acceleration; // acceleration [m/s^2]
+  Eigen::Vector3d jerk;         // jerk [m/s^3]
+  double time;                  // time from trajectory start [s]
 };
 
-// structure to hold control inputs for drone
+// holds the computed control commands for the drone.
 struct ControlInputs {
-  double thrust;                    // thrust command [N]
-  Eigen::Vector4d quaternion;       // attitude quaternion [w,x,y,z]
+  double thrust;                    // required thrust command [n]
+  Eigen::Vector4d quaternion;       // attitude quaternion [w, x, y, z]
   Eigen::Vector3d angular_velocity; // body angular velocity [rad/s]
-  double yaw_angle;                 // yaw angle [rad]
-  double yaw_rate;                  // yaw rate [rad/s]
+  double yaw_angle;                 // desired yaw angle [rad]
+  double yaw_rate;                  // desired yaw rate [rad/s]
 };
 
-// structure to hold trajectory statistics
+// holds performance and summary metrics for a computed trajectory.
 struct TrajectoryStatistics {
-  double total_duration;     // total trajectory time [s]
-  int num_pieces;            // number of polynomial pieces
-  double optimization_cost;  // final optimization cost
-  double max_velocity;       // maximum velocity magnitude [m/s]
-  double max_acceleration;   // maximum acceleration magnitude [m/s^2]
-  Eigen::Vector3d start_pos; // start position
-  Eigen::Vector3d goal_pos;  // goal position
+  double total_duration;    // total trajectory time [s]
+  int num_pieces;           // number of polynomial pieces in the trajectory
+  double optimization_cost; // final cost from the optimization
+  double max_velocity;      // maximum velocity magnitude [m/s]
+  double max_acceleration;  // maximum acceleration magnitude [m/s^2]
+  Eigen::Vector3d start_pos; // trajectory start position [m]
+  Eigen::Vector3d goal_pos;  // trajectory goal position [m]
 };
 
+/**
+ * @class GCopterAPI
+ * @brief provides a simplified, high-level interface for gcopter functionality.
+ *
+ * this class handles the setup of the environment (voxel map), defines the
+ * trajectory planning problem (start/goal), runs the optimization, and provides
+ * methods to query the results.
+ */
 class GCopterAPI {
 public:
   /**
    * Build a VoxelMap from raw obstacle data and apply safety dilation.
    *
-   * @param map_size         Number of voxels along x, y, z.
-   * @param origin           World-coordinate of the grid's (0,0,0) corner.
-   * @param voxel_scale      Edge length of each voxel (in meters).
-   * @param obstacle_points  List of obstacle positions in world coords.
-   * @param dilation_radius  Number of voxels to dilate occupied cells.
+   * @param map_size         number of voxels along each axis (x, y, z).
+   * @param origin           world coordinate of the map's origin (0,0,0) corner.
+   * @param voxel_scale      edge length of a single voxel cube (meters).
+   * @param obstacle_points  a list of 3d points representing obstacles.
+   * @param dilation_radius  number of voxels to dilate around each obstacle for
+   * safety.
    */
   void configure_map(const Eigen::Vector3i &map_size,
                      const Eigen::Vector3d &origin, double voxel_scale,
                      const std::vector<Eigen::Vector3d> &obstacle_points,
                      int dilation_radius = 1);
   /**
-   * Set start and goal positions.
+   * sets the start and goal points for the trajectory.
    *
-   * @param start_pos    Starting position in world coordinates
-   * @param goal_pos     Goal position in world coordinates
-   * @param start_vel    Initial velocity (optional, defaults to zero)
-   * @param goal_vel     Final velocity (optional, defaults to zero)
+   * @param start_pos    starting position in world coordinates [m].
+   * @param goal_pos     goal position in world coordinates [m].
+   * @param start_vel    initial velocity [m/s] (optional, defaults to zero).
+   * @param goal_vel     final velocity [m/s] (optional, defaults to zero).
    */
   void set_endpoints(const Eigen::Vector3d &start_pos,
                      const Eigen::Vector3d &goal_pos,
@@ -66,25 +79,32 @@ public:
                      const Eigen::Vector3d &goal_vel = Eigen::Vector3d::Zero());
 
   /**
-   * Plan and optimize a minimum-time trajectory through the configured map and
-   * endpoints.
+   * runs the full trajectory planning and optimization pipeline.
    *
-   * @param planning_timeout     Maximum time (seconds) for OMPL planning.
-   * @param time_weight          Weight on total flight time in the optimizer.
-   * @param segment_length       Nominal length (meters) per corridor segment.
-   * @param smoothing_epsilon    Epsilon for safe corridor smoothing.
-   * @param integral_resolution  Number of integration points per segment for
-   * penalty terms.
-   * @param magnitude_bounds     Eigen::VectorXd(5): [v_max, omega_max,
-   * theta_max, thrust_min, thrust_max].
-   * @param penalty_weights      Eigen::VectorXd(5): [pos_weight, vel_weight,
-   * omega_weight, theta_weight, thrust_weight].
-   * @param physical_params      Eigen::VectorXd(6): [mass, grav_accel,
-   * horiz_drag, vert_drag, parasitic_drag, speed_smooth_factor].
-   * @param out_traj             Output parameter to receive the optimized
-   * 5th-order trajectory.
-   * @return                     True if planning and optimization succeeded,
-   * false otherwise.
+   * this process involves:
+   * 1. finding an initial geometric path (ompl).
+   * 2. generating a safe flight corridor (sfc) around the path.
+   * 3. optimizing a polynomial trajectory within the sfc.
+   *
+   * @param planning_timeout     max time in seconds for the initial ompl
+   * planner.
+   * @param time_weight          penalty weight on total flight time in the
+   * optimizer.
+   * @param segment_length       desired length (meters) of each corridor
+   * segment.
+   * @param smoothing_epsilon    epsilon value for corridor smoothing algorithm.
+   * @param integral_resolution  number of integration points per segment for
+   * checking penalties.
+   * @param magnitude_bounds     vector(5): [v_max, omega_max, theta_max,
+   * thrust_min, thrust_max].
+   * @param penalty_weights      vector(5): weights for [pos, vel, omega, theta,
+   * thrust] penalties.
+   * @param physical_params      vector(6): [mass, gravity, horiz_drag,
+   * vert_drag, parasitic_drag, speed_smooth_factor].
+   * @param out_traj             output reference to store the resulting
+   * trajectory.
+   * @return                     true if planning and optimization succeed, false
+   * otherwise.
    */
   bool run_inference(double planning_timeout, double time_weight,
                      double segment_length, double smoothing_epsilon,
@@ -95,54 +115,58 @@ public:
                      Trajectory<5> &out_traj);
 
   /**
-   * Get complete drone state (position, velocity, acceleration, jerk) at a
-   * specific time.
+   * gets the complete drone kinematic state (pos, vel, acc, jerk) at a given
+   * time.
    *
-   * @param time    Time along trajectory [0, total_duration]
-   * @param state   Output parameter to receive drone state
-   * @return        True if successful, false if no trajectory computed or time
-   * out of bounds
+   * @param time    time along the trajectory, from 0 to total_duration.
+   * @param state   output reference to store the drone's state.
+   * @return        true if successful, false if no trajectory is computed or
+   * time is out of bounds.
    */
   bool getStateAtTime(double time, DroneState &state) const;
 
   /**
-   * Get control inputs (thrust, attitude, angular velocity) at a specific time.
+   * computes the required control inputs (thrust, attitude) for a given state.
    *
-   * @param time     Time along trajectory [0, total_duration]
-   * @param inputs   Output parameter to receive control inputs
-   * @param yaw      Desired yaw angle [rad] (optional, defaults to 0)
-   * @param yaw_rate Desired yaw rate [rad/s] (optional, defaults to 0)
-   * @return         True if successful, false if no trajectory computed or time
-   * out of bounds
+   * @param time     time along the trajectory, from 0 to total_duration.
+   * @param inputs   output reference to store the computed control inputs.
+   * @param yaw      desired yaw angle [rad] (optional, default 0).
+   * @param yaw_rate desired yaw rate [rad/s] (optional, default 0).
+   * @return         true if successful, false if no trajectory is computed or
+   * time is out of bounds.
    */
   bool getControlInputs(double time, ControlInputs &inputs, double yaw = 0.0,
                         double yaw_rate = 0.0) const;
 
   /**
-   * Get trajectory performance statistics and metrics.
+   * retrieves performance metrics and statistics for the computed trajectory.
    *
-   * @param stats   Output parameter to receive trajectory statistics
-   * @return        True if successful, false if no trajectory computed
+   * @param stats   output reference to store trajectory statistics.
+   * @return        true if successful, false if no trajectory has
+   * been computed.
    */
   bool getStatistics(TrajectoryStatistics &stats) const;
 
   /**
-   * @brief Prints the voxel map to the console for visualization.
+   * @brief prints a 2d representation of the voxel map to the console.
    */
   void print_voxel_map() const;
 
   /**
-   * Get trajectory data for Open3D visualization.
+   * retrieves all necessary data for visualizing the trajectory and map.
    *
-   * @param trajectory_points  Output parameter to receive trajectory positions
-   * @param voxel_data        Output parameter to receive voxel occupancy grid
-   * @param voxel_size        Voxel size for scaling
-   * @param start_pos         Output parameter for start position
-   * @param goal_pos          Output parameter for goal position
-   * @param show_initial_route Flag to include initial OMPL route in output
-   * @param initial_route     Output parameter for initial route (if requested)
-   * @return                  True if successful, false if no trajectory
-   * computed
+   * @param trajectory_points  output vector to store 3d points of the
+   * trajectory.
+   * @param voxel_data         output 3d grid of voxel occupancy states (0=free,
+   * 1=occ, 2=dilated).
+   * @param voxel_size         output for the size of each voxel.
+   * @param start_pos          output for the start position.
+   * @param goal_pos           output for the goal position.
+   * @param show_initial_route flag to also retrieve the un-optimized ompl path.
+   * @param initial_route      output vector to store the initial path (if
+   * requested).
+   * @return                   true if successful, false if no trajectory has
+   * been computed.
    */
   bool get_visualization_data(
       std::vector<Eigen::Vector3d> &trajectory_points,
@@ -152,30 +176,33 @@ public:
       std::vector<Eigen::Vector3d> *initial_route = nullptr) const;
 
   /**
-   * Get the initial route.
+   * retrieves the initial, un-optimized path generated by ompl.
    *
-   * @param route   Output parameter to receive the initial route
-   * @return        True if successful, false if no route computed
+   * @param route   output vector to store the initial route points.
+   * @return        true if successful, false if no route has been computed.
    */
   bool get_initial_route(std::vector<Eigen::Vector3d> &route) const;
 
 private:
+  // pointer to the voxel map, which holds the 3d environment representation.
   std::unique_ptr<voxel_map::VoxelMap> map_;
+
+  // trajectory start and goal definitions.
   Eigen::Vector3d start_position_;
   Eigen::Vector3d goal_position_;
   Eigen::Vector3d start_velocity_;
   Eigen::Vector3d goal_velocity_;
-  bool endpoints_set_ = false; // track if endpoints have been configured
+  bool endpoints_set_ = false; // flag to ensure endpoints are configured before use.
 
-  // trajectory and optimization results
+  // stores the final optimized trajectory.
   Trajectory<5> trajectory_;
-  bool trajectory_computed_ = false;
+  bool trajectory_computed_ = false; // flag to track if optimization was successful.
   double optimization_cost_ = 0.0;
-  Eigen::VectorXd physical_params_; // store for flatness mapping
+  Eigen::VectorXd physical_params_; // vehicle physical params for control calculation.
 
-  // flatness mapper for control computation
+  // flatness mapping utility to convert trajectory derivatives to control inputs.
   mutable flatness::FlatnessMap flatness_map_;
 
-  // initial route
+  // stores the initial, un-optimized path from ompl.
   std::vector<Eigen::Vector3d> initial_route_;
 };
