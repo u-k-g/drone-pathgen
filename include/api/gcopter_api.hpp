@@ -131,6 +131,22 @@ public:
    */
   void print_voxel_map() const;
 
+  /**
+   * Get trajectory data for Open3D visualization.
+   * 
+   * @param trajectory_points  Output parameter to receive trajectory positions
+   * @param voxel_data        Output parameter to receive voxel occupancy grid
+   * @param voxel_size        Voxel size for scaling 
+   * @param start_pos         Output parameter for start position
+   * @param goal_pos          Output parameter for goal position
+   * @return                  True if successful, false if no trajectory computed
+   */
+  bool get_visualization_data(std::vector<Eigen::Vector3d> &trajectory_points,
+                              std::vector<std::vector<std::vector<int>>> &voxel_data,
+                              double &voxel_size,
+                              Eigen::Vector3d &start_pos,
+                              Eigen::Vector3d &goal_pos) const;
+
 private:
   std::unique_ptr<voxel_map::VoxelMap> map_;
   Eigen::Vector3d start_position_;

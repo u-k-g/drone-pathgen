@@ -10,6 +10,7 @@ PYBIND11_MODULE(gcopter_cpp, m) {
 
   // expose simple structs first
   py::class_<DroneState>(m, "DroneState")
+      .def(py::init<>())
       .def_readonly("time", &DroneState::time)
       .def_readonly("position", &DroneState::position)
       .def_readonly("velocity", &DroneState::velocity)
@@ -17,6 +18,7 @@ PYBIND11_MODULE(gcopter_cpp, m) {
       .def_readonly("jerk", &DroneState::jerk);
 
   py::class_<ControlInputs>(m, "ControlInputs")
+      .def(py::init<>())
       .def_readonly("thrust", &ControlInputs::thrust)
       .def_readonly("quaternion", &ControlInputs::quaternion)
       .def_readonly("angular_velocity", &ControlInputs::angular_velocity)
@@ -24,6 +26,7 @@ PYBIND11_MODULE(gcopter_cpp, m) {
       .def_readonly("yaw_rate", &ControlInputs::yaw_rate);
 
   py::class_<TrajectoryStatistics>(m, "TrajectoryStatistics")
+      .def(py::init<>())
       .def_readonly("total_duration", &TrajectoryStatistics::total_duration)
       .def_readonly("num_pieces", &TrajectoryStatistics::num_pieces)
       .def_readonly("optimization_cost", &TrajectoryStatistics::optimization_cost)
@@ -72,5 +75,9 @@ PYBIND11_MODULE(gcopter_cpp, m) {
       .def("get_statistics", &GCopterAPI::getStatistics,
            py::arg("stats"), "retrieve trajectory statistics")
       .def("print_voxel_map", &GCopterAPI::print_voxel_map,
-           "print voxel occupancy grid to stdout");
+           "print voxel occupancy grid to stdout")
+      .def("get_visualization_data", &GCopterAPI::get_visualization_data,
+           py::arg("trajectory_points"), py::arg("voxel_data"),
+           py::arg("voxel_size"), py::arg("start_pos"), py::arg("goal_pos"),
+           "extract trajectory and voxel data for open3d visualization");
 } 

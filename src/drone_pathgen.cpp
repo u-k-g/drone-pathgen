@@ -366,3 +366,54 @@ void GCopterAPI::print_voxel_map() const {
     }
   }
 }
+
+bool GCopterAPI::get_visualization_data(
+    std::vector<Eigen::Vector3d> &trajectory_points,
+    std::vector<std::vector<std::vector<int>>> &voxel_data,
+    double &voxel_size,
+    Eigen::Vector3d &start_pos,
+    Eigen::Vector3d &goal_pos) const {
+  
+  // check if we have computed trajectory and map
+  if (!trajectory_computed_ || !map_) {
+    std::cerr << "ERROR: No trajectory computed or map not configured." << std::endl;
+    return false;
+  }
+
+  // extract trajectory points (sample every 0.1 seconds)
+  trajectory_points.clear();
+  double total_duration = trajectory_.getTotalDuration();
+  double dt = 0.1;
+  
+  for (double t = 0.0; t <= total_duration; t += dt) {
+    trajectory_points.push_back(trajectory_.getPos(t));
+  }
+  // add final point
+  if (total_duration > 0.0) {
+    trajectory_points.push_back(trajectory_.getPos(total_duration));
+  }
+
+  // extract voxel data
+  const auto size = map_->getSize();
+  const auto &voxels = map_->getVoxels();
+  voxel_size = map_->getScale();
+  
+  // convert to 3d vector format expected by python
+  voxel_data.resize(size(2));
+  for (int z = 0; z < size(2); ++z) {
+    voxel_data[z].resize(size(1));
+    for (int y = 0; y < size(1); ++y) {
+      voxel_data[z][y].resize(size(0));
+      for (int x = 0; x < size(0); ++x) {
+        int idx = x + y * size(0) + z * size(0) * size(1);
+        voxel_data[z][y][x] = static_cast<int>(voxels[idx]);
+      }
+    }
+  }
+
+  // set start and goal positions
+  start_pos = start_position_;
+  goal_pos = goal_position_;
+
+  return true;
+}

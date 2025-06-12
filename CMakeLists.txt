@@ -18,6 +18,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/opt/homebrew/Cellar/ompl/1.7.0_1/sh
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem serialization system)
 find_package(ompl REQUIRED)
+find_package(pybind11 REQUIRED HINTS /Users/uzair/01-dev/drone-pathgen/.venv/lib/python3.12/site-packages/pybind11/share/cmake/pybind11)
 
 # Include directories
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -47,4 +48,16 @@ target_link_libraries(test
     ${Boost_LIBRARIES}
     ${OMPL_LIBRARIES}
 )
+
+# Add pybind11 module
+pybind11_add_module(gcopter_cpp src/pybindings.cpp)
+target_link_libraries(gcopter_cpp PRIVATE 
+    drone_pathgen
+    Eigen3::Eigen
+    ${Boost_LIBRARIES}
+    ${OMPL_LIBRARIES}
+)
+
+# Compiler-specific options for pybind11 module
+target_compile_definitions(gcopter_cpp PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
 
