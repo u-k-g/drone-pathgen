@@ -48,7 +48,6 @@ uv add "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 supported python versions:
 
 - all functionality: 3.8 → 3.12
-- python 3.13: not yet supported (due to open3d dependency constraints)
 
 </details>
 
