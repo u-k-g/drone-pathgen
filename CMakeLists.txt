@@ -18,7 +18,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/opt/homebrew/Cellar/ompl/1.7.0_1/sh
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem serialization system)
 find_package(ompl REQUIRED)
-find_package(pybind11 REQUIRED HINTS /Users/uzair/01-dev/drone-pathgen/.venv/lib/python3.12/site-packages/pybind11/share/cmake/pybind11)
+find_package(pybind11 REQUIRED)
 
 # Include directories
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -41,8 +41,10 @@ target_compile_options(drone_pathgen PRIVATE ${OMPL_CFLAGS_OTHER})
 # For debugging
 set(CMAKE_BUILD_TYPE Debug)
 
-# Add pybind11 module
+# Add pybind11 module - this creates the Python extension
 pybind11_add_module(gcopter_cpp src/pybindings.cpp)
+
+# Link the pybind11 module with dependencies
 target_link_libraries(gcopter_cpp PRIVATE 
     drone_pathgen
     Eigen3::Eigen
@@ -52,4 +54,17 @@ target_link_libraries(gcopter_cpp PRIVATE
 
 # Compiler-specific options for pybind11 module
 target_compile_definitions(gcopter_cpp PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
+
+# Set properties for the Python module
+set_target_properties(gcopter_cpp PROPERTIES
+    CXX_VISIBILITY_PRESET "hidden"
+    INTERPROCEDURAL_OPTIMIZATION TRUE
+)
+
+# Install the Python module to the correct location
+# This will be handled by the Python build system (pip/uv) when installing
+install(TARGETS gcopter_cpp
+    COMPONENT python
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}
+)
 

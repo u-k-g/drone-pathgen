@@ -1,11 +1,52 @@
+[build-system]
+requires = ["pybind11>=2.13.6", "setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "drone-pathgen"
 version = "0.1.0"
-description = "Add your description here"
+description = "Python wrapper for GCOPTER trajectory planning library"
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "numpy>=2.2.6",
-    "open3d>=0.19.0",
-    "pybind11>=2.13.6",
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    {name = "Uzair Khan Ghori", email = "u@ukg.one"}
 ]
+keywords = ["drone", "trajectory", "planning", "robotics", "path-planning", "gcopter", "ompl"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Robotics",
+]
+dependencies = [
+    "numpy>=1.20.0",
+    "open3d>=0.17.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "black",
+    "isort",
+    "flake8",
+]
+
+[project.urls]
+Homepage = "https://github.com/u-k-g/drone-pathgen"
+Repository = "https://github.com/u-k-g/drone-pathgen"
+Issues = "https://github.com/u-k-g/drone-pathgen/issues"
+
+
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
