@@ -23,8 +23,14 @@ A Python interface for the GCOPTER library, enabling advanced drone trajectory p
 # Install the package
 pip install drone-pathgen
 
+# Install with visualization support (requires Python 3.8-3.12)
+pip install drone-pathgen[viz]
+
 # Or with uv
 uv add drone-pathgen
+
+# Or with visualization
+uv add drone-pathgen[viz]
 ```
 
 ### Option 2: Install from Source
@@ -41,6 +47,9 @@ brew install ompl eigen boost
 
 # Install the package
 pip install drone-pathgen
+
+# Or directly from GitHub
+pip install git+https://github.com/u-k-g/drone-pathgen.git
 ```
 
 #### Ubuntu/Debian
