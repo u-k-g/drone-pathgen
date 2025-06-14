@@ -50,16 +50,8 @@
         ],
         "priorities": [
             {
-                "source": "README.md",
-                "weight": 1.0
-            },
-            {
-                "source": "docs/",
-                "weight": 0.8
-            },
-            {
-                "source": "src/example_usage.py",
-                "weight": 0.7
+                "source": ".notes/",
+                "weight": 1
             }
         ],
         "modes": {
