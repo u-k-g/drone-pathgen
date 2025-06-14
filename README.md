@@ -15,51 +15,63 @@ A Python interface for the GCOPTER library, enabling advanced drone trajectory p
 - **Python-Native Integration**: Seamlessly works with NumPy and other Python scientific libraries.
 - **Standalone**: Does not require ROS (Robot Operating System) or other heavy frameworks.
 
-## Quick Start
+## Installation
 
-### Prerequisites
-- A C++ compiler (e.g., GCC, Clang)
-- CMake (version 3.10 or newer)
-- Python (version 3.8 or newer)
-- `uv` (for Python environment management)
+### Option 1: Install from PyPI (Recommended)
 
-### Building the Project
+```bash
+# Install the package
+pip install drone-pathgen
 
-The project includes a simple build script to handle compilation and setup.
-
-```fish
-# quick build and run the example (recommended)
-./scripts/build.sh
-
-# to run with 3d visualization (requires open3d)
-# pip install open3d
-./scripts/build.sh --visualize
+# Or with uv
+uv add drone-pathgen
 ```
 
-For manual compilation, follow these steps:
-```fish
-# create a build directory
-mkdir -p build && cd build
+### Option 2: Install from Source
 
-# configure and compile
-cmake ..
-make
+#### Prerequisites
+- **System Dependencies**: OMPL, Eigen3, Boost libraries
+- **Python**: 3.8 or newer
+- **Build Tools**: CMake 3.10+, C++17 compatible compiler
 
-# run the example from the root directory
-cd ..
-uv run python src/example_usage.py
+#### macOS (Homebrew)
+```bash
+# Install system dependencies
+brew install ompl eigen boost
+
+# Install the package
+pip install drone-pathgen
+```
+
+#### Ubuntu/Debian
+```bash
+# Install system dependencies
+sudo apt-get update
+sudo apt-get install libompl-dev libeigen3-dev libboost-all-dev
+
+# Install the package
+pip install drone-pathgen
+```
+
+#### Development Installation
+```bash
+# Clone the repository
+git clone https://github.com/u-k-g/drone-pathgen.git
+cd drone-pathgen
+
+# Install in development mode
+pip install -e .
+
+# Or with uv
+uv pip install -e .
 ```
 
 ## Python API Usage
 
-After building the project, you can use the Python wrapper to plan drone trajectories as shown below.
+After installing the package, you can use the Python wrapper to plan drone trajectories as shown below.
 
 ```python
-import sys
 import numpy as np
-
-# add the build directory to the python path to find our module
-sys.path.append('build')  
 import gcopter_cpp
 
 # create an api instance
