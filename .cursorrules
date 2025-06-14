@@ -1,12 +1,5 @@
 {
     "rules": {
-        "context_initialization": {
-            "description": "Starting point for each interaction with the drone-pathgen project",
-            "steps": [
-                "ALWAYS read `README.md` for project overview and setup instructions",
-                "Check `src/example_usage.py` for example usage of the GCopterAPI"
-            ]
-        },
         "operational_protocol": {
             "description": "Guidelines for approaching development tasks",
             "before_action": [
@@ -14,7 +7,7 @@
                 "Verify compatibility with dependencies like NumPy and Open3D"
             ],
             "code_changes": [
-                "Read relevant code in `src/gcopter_cpp/` before editing",
+                "Read relevant code in `src/` and `include/` before editing",
                 "Preserve existing functionality of trajectory planning and collision avoidance",
                 "Ensure numerical stability for 3D coordinate calculations",
                 "Test changes with `pytest tests/` before committing"
@@ -52,6 +45,10 @@
             {
                 "source": ".notes/",
                 "weight": 1
+            },
+            {
+                "source": "directory_structure.md",
+                "weight": 0.5
             }
         ],
         "modes": {
