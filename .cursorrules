@@ -1,0 +1,78 @@
+{
+    "rules": {
+        "context_initialization": {
+            "description": "Starting point for each interaction with the drone-pathgen project",
+            "steps": [
+                "ALWAYS read `README.md` for project overview and setup instructions",
+                "Check `src/example_usage.py` for example usage of the GCopterAPI"
+            ]
+        },
+        "operational_protocol": {
+            "description": "Guidelines for approaching development tasks",
+            "before_action": [
+                "Create a MECE (Mutually Exclusive, Collectively Exhaustive) task breakdown for new features or bug fixes",
+                "Verify compatibility with dependencies like NumPy and Open3D"
+            ],
+            "code_changes": [
+                "Read relevant code in `src/gcopter_cpp/` before editing",
+                "Preserve existing functionality of trajectory planning and collision avoidance",
+                "Ensure numerical stability for 3D coordinate calculations",
+                "Test changes with `pytest tests/` before committing"
+            ]
+        },
+        "testing_requirements": {
+            "description": "Best practices for testing in the drone-pathgen project",
+            "rules": [
+                "Write unit tests for all critical functions, especially in `gcopter_cpp/`",
+                "Use pytest as the testing framework, running tests with `pytest tests/`",
+                "Cover edge cases (e.g., invalid 3D coordinates, boundary conditions) and typical usage scenarios",
+                "Document testing strategy in `docs/testing.md` or `README.md`",
+                "Integrate continuous testing with CI/CD (e.g., GitHub Actions)",
+                "Separate visualization code (e.g., Open3D) from core functionality tests to ensure determinism"
+            ]
+        },
+        "coding_standards": {
+            "description": "Standards for writing and maintaining code",
+            "rules": [
+                "Follow PEP 8 for Python code style",
+                "Use type hints for all functions and classes to support static type checking",
+                "Write detailed docstrings for public functions, especially those wrapping C++ API calls",
+                "Implement proper error handling with informative exceptions",
+                "Use meaningful git commit messages (e.g., 'Add unit tests for trajectory planner')",
+                "Ensure numerical precision in calculations involving 3D coordinates and trajectories"
+            ]
+        },
+        "safety_requirements": [
+            "NEVER break Python-C++ interface compatibility",
+            "ALWAYS maintain proper error handling for C++ API calls",
+            "ALWAYS document new functions and classes with docstrings",
+            "NEVER commit untested code changes to critical components"
+        ],
+        "priorities": [
+            {
+                "source": "README.md",
+                "weight": 1.0
+            },
+            {
+                "source": "docs/",
+                "weight": 0.8
+            },
+            {
+                "source": "src/example_usage.py",
+                "weight": 0.7
+            }
+        ],
+        "modes": {
+            "base": {
+                "description": "For routine tasks like adding tests or minor features"
+            },
+            "enhanced": {
+                "description": "For complex tasks like optimizing trajectory algorithms or debugging C++ integration"
+            }
+        },
+        "project_directives": {
+            "name": "drone-pathgen",
+            "ai_first": true
+        }
+    }
+}

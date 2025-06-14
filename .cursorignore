@@ -1,0 +1,7 @@
+/node_modules
+/build
+/temp
+.DS_Store
+/.cache
+/.vscode
+.ruff_cache
