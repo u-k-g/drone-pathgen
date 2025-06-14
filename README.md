@@ -24,7 +24,7 @@
 
 prerequisites – make sure **ompl**, **eigen3** and **boost** are available on your system.
 
-```bash
+```fish
 # macos (homebrew)
 brew install ompl eigen boost
 
@@ -35,13 +35,13 @@ sudo apt-get install libompl-dev libeigen3-dev libboost-all-dev
 
 install the library (core only):
 
-```bash
+```fish
 uv add git+https://github.com/u-k-g/drone-pathgen.git
 ```
 
 install with visualization support (adds open3d):
 
-```bash
+```fish
 uv add "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 ```
 
@@ -53,51 +53,20 @@ supported python versions:
 </details>
 
 <details>
-<summary><strong>quick test</strong></summary>
-
-```python
-import gcopter_cpp
-api = gcopter_cpp.GCopterAPI()
-print("✅ gcopter wrapper loaded!")
-```
-
-</details>
-
-<details>
 <summary><strong>python api usage</strong></summary>
 
+see the examples folder for complete working demos:
+
+- [`examples/basic_pathgen.py`](examples/basic_pathgen.py) - core trajectory planning workflow
+- [`examples/visualization.py`](examples/visualization.py) - 3d visualization with open3d
+
+basic workflow:
 ```python
-import numpy as np
 import gcopter_cpp as gc
-
 api = gc.GCopterAPI()
-
-# 1. build a voxel map
-map_size     = np.array([20, 20, 10], dtype=np.int32)
-origin       = np.array([-5.0, -5.0, 0.0])
-voxel_scale  = 0.5  # metres per voxel
-obstacles    = [np.array([0.0, 0.0, 1.0]), np.array([-1., -1., 1.]), np.array([1., 1., 1.])]
-api.configure_map(map_size, origin, voxel_scale, obstacles, dilation_radius=2)
-
-# 2. define endpoints
-api.set_endpoints(start=np.array([-3., -3., 1.]), goal=np.array([3., 3., 1.]))
-
-# 3. optimisation parameters
-success = api.run_inference(
-    planning_timeout   = 5.0,
-    time_weight        = 50.0,
-    segment_length     = 2.0,
-    smoothing_epsilon  = 1e-3,
-    integral_resolution= 8,
-    magnitude_bounds   = np.array([5., 10., np.pi/3, 5., 15.]),
-    penalty_weights    = np.array([1, 1, 1, 1, 1]),
-    physical_params    = np.array([1., 9.81, 0., 0., 0., 0.01])
-)
-
-if success:
-    stats = gc.TrajectoryStatistics()
-    api.get_statistics(stats)
-    print(f"trajectory duration: {stats.total_duration:.2f}s")
+api.configure_map(map_size, origin, voxel_scale, obstacles, dilation_radius)
+api.set_endpoints(start_pos, goal_pos)
+success = api.run_inference(...)
 ```
 
 </details>

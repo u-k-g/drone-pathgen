@@ -1,7 +1,11 @@
+# drone-pathgen directory structure
+
 ```fish
 ❯ eza --tree
 CMakeLists.txt
-directory_structure.md
+examples
+├── basic_pathgen.py
+└── visualization.py
 include
 ├── api
 │   └── gcopter_api.hpp
@@ -23,12 +27,8 @@ LICENSE
 MANIFEST.in
 pyproject.toml
 README.md
-scripts
-└── build.sh
 setup.py
 src
 ├── drone_pathgen.cpp
-├── example_usage.py
-├── gcopter_cpp.cpython-312-darwin.so
 └── pybindings.cpp
 ```
