@@ -58,9 +58,9 @@ def visualize_trajectory():
     api.configure_map(map_size, origin, voxel_scale, obstacles, dilation_radius=3)
 
     # set challenging start/goal
-    start_pos = np.array([-5.0, -5.0, 1.5])
-    goal_pos  = np.array([5.0, 5.0, 3.0])
-    api.set_endpoints(start=start_pos, goal=goal_pos)
+    start_pos = np.array([[-5.0], [-5.0], [1.5]])
+    goal_pos  = np.array([[5.0], [5.0], [3.0]])
+    api.set_endpoints(start_pos, goal_pos)
     print(f"🎯 planning from {start_pos} to {goal_pos}")
 
     # run optimization
