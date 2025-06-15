@@ -3,7 +3,7 @@
 <details open>
 <summary><strong>overview</strong></summary>
 
-`drone-pathgen` is a lightweight python wrapper around **gcopter** – a state-of-the-art trajectory optimizer for multicopters. it lets you generate smooth, collision-free drone paths directly from python while keeping the heavy number-crunching in c++.
+`drone-pathgen` is a lightweight python wrapper around **gcopter** – a trajectory optimizer for multicopters. it lets you generate smooth, collision-free drone paths directly from python swiftly and painlessly.
 
 </details>
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/d2c40804-ac8f-440d-a3db-ab63a1d49f26" />
@@ -16,7 +16,7 @@
 - smooth, jerk-limited trajectories within safe-flight-corridors (sfc)
 - built-in optimization for time, energy and feasibility
 - numpy-friendly api – results come back as plain ndarrays
-- optional open3d visualization extras
+- optional open3d visualization extras [see screenshot in overview]
 
 </details>
 
@@ -26,7 +26,7 @@
 prerequisites – make sure **ompl**, **eigen3** and **boost** are available on your system.
 
 ```fish
-# macos (homebrew)
+# macos [homebrew]
 brew install ompl eigen boost
 
 # ubuntu / debian
@@ -34,7 +34,7 @@ sudo apt-get update
 sudo apt-get install libompl-dev libeigen3-dev libboost-all-dev
 ```
 
-install the library (core only):
+install the library [core only]:
 
 ```fish
 uv add git+https://github.com/u-k-g/drone-pathgen.git
@@ -42,7 +42,7 @@ uv add git+https://github.com/u-k-g/drone-pathgen.git
 pip install git+https://github.com/u-k-g/drone-pathgen.git
 ```
 
-install with visualization support (adds open3d):
+install with visualization support [adds open3d]:
 
 ```fish
 uv add "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
@@ -50,9 +50,7 @@ uv add "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 pip install "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 ```
 
-supported python versions:
-
-- all functionality: 3.8 → 3.12
+supported python versions [3.8 → 3.12]
 
 </details>
 
