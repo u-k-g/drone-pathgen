@@ -1,13 +1,13 @@
 # GCOPTER python wrapper
 
-<details>
+<details open>
 <summary><strong>overview</strong></summary>
 
 `drone-pathgen` is a lightweight python wrapper around **gcopter** – a state-of-the-art trajectory optimizer for multicopters. it lets you generate smooth, collision-free drone paths directly from python while keeping the heavy number-crunching in c++.
 
 </details>
 
-<details>
+<details open>
 <summary><strong>features</strong></summary>
 
 - smart path planning that avoids obstacles and respects real drone physics
@@ -19,7 +19,7 @@
 
 </details>
 
-<details>
+<details open>
 <summary><strong>installation</strong></summary>
 
 prerequisites – make sure **ompl**, **eigen3** and **boost** are available on your system.
@@ -37,12 +37,16 @@ install the library (core only):
 
 ```fish
 uv add git+https://github.com/u-k-g/drone-pathgen.git
+# or with pip 
+pip install git+https://github.com/u-k-g/drone-pathgen.git
 ```
 
 install with visualization support (adds open3d):
 
 ```fish
 uv add "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
+# or with pip
+pip install "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 ```
 
 supported python versions:
@@ -51,7 +55,7 @@ supported python versions:
 
 </details>
 
-<details>
+<details open>
 <summary><strong>python api usage</strong></summary>
 
 see the examples folder for complete working demos:
@@ -70,7 +74,7 @@ success = api.run_inference(...)
 
 </details>
 
-<details>
+<details open>
 <summary><strong>key concepts</strong></summary>
 
 - **voxel map** – 3d occupancy grid representing obstacles
@@ -79,7 +83,7 @@ success = api.run_inference(...)
 
 </details>
 
-<details>
+<details open>
 <summary><strong>applications</strong></summary>
 
 - autonomous delivery
@@ -90,7 +94,7 @@ success = api.run_inference(...)
 
 </details>
 
-<details>
+<details open>
 <summary><strong>license</strong></summary>
 
 released under the mit license – see `license` file for details.
