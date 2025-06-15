@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 
-import subprocess
 import os
 import glob
-from pathlib import Path
 from pybind11.setup_helpers import Pybind11Extension, build_ext
-from pybind11 import get_cmake_dir
-import pybind11
-from setuptools import setup, Extension
+from setuptools import setup
 
 def find_ompl_include():
     """find the OMPL include directory automatically."""
