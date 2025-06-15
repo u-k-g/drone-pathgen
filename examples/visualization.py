@@ -12,7 +12,7 @@ requires: uv add "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 """
 
 import numpy as np
-import gcopter_cpp as gc
+from basic_pathgen import generate_basic_trajectory
 
 def visualize_trajectory():
     """run trajectory planning and visualize results with open3d"""
@@ -26,56 +26,9 @@ def visualize_trajectory():
     
     print("🚁 trajectory visualization example")
     
-    # create api instance
-    api = gc.GCopterAPI()
-
-    # build voxel map with more obstacles for interesting visualization
-    map_size     = np.array([30, 30, 15], dtype=np.int32)
-    origin       = np.array([-7.5, -7.5, 0.0])
-    voxel_scale  = 0.5
+    # reuse the basic trajectory generation
+    api, success = generate_basic_trajectory()
     
-    # create a more complex obstacle field
-    obstacles = [
-        # central pillar
-        np.array([0.0, 0.0, 2.0]),
-        np.array([0.0, 0.0, 3.0]),
-        np.array([0.0, 0.0, 4.0]),
-        
-        # side barriers
-        np.array([-2.0, -2.0, 1.5]),
-        np.array([2.0, 2.0, 1.5]),
-        np.array([2.0, -2.0, 1.5]),
-        np.array([-2.0, 2.0, 1.5]),
-        
-        # scattered obstacles
-        np.array([1.0, -3.0, 2.0]),
-        np.array([-1.0, 3.0, 2.0]),
-        np.array([3.0, 1.0, 2.5]),
-        np.array([-3.0, -1.0, 2.5]),
-    ]
-    
-    print("📍 building complex 3d environment...")
-    api.configure_map(map_size, origin, voxel_scale, obstacles, dilation_radius=3)
-
-    # set challenging start/goal
-    start_pos = np.array([[-5.0], [-5.0], [1.5]])
-    goal_pos  = np.array([[5.0], [5.0], [3.0]])
-    api.set_endpoints(start_pos, goal_pos)
-    print(f"🎯 planning from {start_pos} to {goal_pos}")
-
-    # run optimization
-    print("⚡ optimizing trajectory...")
-    success = api.run_inference(
-        planning_timeout   = 10.0,
-        time_weight        = 30.0,
-        segment_length     = 1.5,
-        smoothing_epsilon  = 1e-3,
-        integral_resolution= 10,
-        magnitude_bounds   = np.array([4., 8., np.pi/4, 4., 12.]),
-        penalty_weights    = np.array([1, 1, 1, 1, 1]),
-        physical_params    = np.array([1.2, 9.81, 0., 0., 0., 0.01])
-    )
-
     if not success:
         print("❌ trajectory optimization failed!")
         return
@@ -124,14 +77,14 @@ def visualize_trajectory():
     # create obstacle mesh (red)
     if occupied_indices:
         occupied_mesh = build_voxel_mesh(
-            occupied_indices, voxel_size, origin, [0.8, 0.2, 0.2]
+            occupied_indices, voxel_size, start, [0.8, 0.2, 0.2]
         )
         geometries.append(occupied_mesh)
 
     # create safety margin mesh (yellow/transparent)
     if dilated_indices:
         dilated_mesh = build_voxel_mesh(
-            dilated_indices, voxel_size, origin, [0.9, 0.7, 0.2]
+            dilated_indices, voxel_size, start, [0.9, 0.7, 0.2]
         )
         geometries.append(dilated_mesh)
 
@@ -167,7 +120,7 @@ def visualize_trajectory():
 
     # coordinate frame
     coord_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1.0)
-    coord_frame.translate(origin)
+    coord_frame.translate(start)
     geometries.append(coord_frame)
 
     # launch visualization

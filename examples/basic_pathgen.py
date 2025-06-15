@@ -12,20 +12,30 @@ demonstrates core trajectory planning workflow:
 import numpy as np
 import gcopter_cpp as gc
 
-def main():
-    print("🚁 basic path generation example")
+def generate_basic_trajectory():
+    """generate a basic trajectory - returns (api, success)"""
+    print("🚁 basic path generation")
     
     # create api instance
     api = gc.GCopterAPI()
 
     # 1. build a voxel map
-    map_size     = np.array([20, 20, 10], dtype=np.int32)
-    origin       = np.array([-5.0, -5.0, 0.0])
-    voxel_scale  = 0.5  # metres per voxel
-    obstacles    = [
-        np.array([0.0, 0.0, 1.0]), 
-        np.array([-1., -1., 1.]), 
-        np.array([1., 1., 1.])
+    map_size     = np.array([30, 30, 15], dtype=np.int32)
+    origin       = np.array([-7.5, -7.5, 0.0])
+    voxel_scale  = 0.5
+    
+    # create a more complex obstacle field
+    obstacles = [
+        # central pillar
+        np.array([0.0, 0.0, 2.0]),
+        np.array([0.0, 0.0, 3.0]),
+        np.array([0.0, 0.0, 4.0]),
+        
+        # side barriers
+        np.array([-2.0, -2.0, 1.5]),
+        np.array([2.0, 2.0, 1.5]),
+        np.array([2.0, -2.0, 1.5]),
+        np.array([-2.0, 2.0, 1.5]),
     ]
     
     print("📍 configuring map with obstacles...")
@@ -33,9 +43,9 @@ def main():
 
     # 2. define endpoints
     start_pos = np.array([[-5.0], [-5.0], [1.5]])
-    goal_pos  = np.array([[5.0], [5.0], [3.0]])
+    goal_pos  = np.array([[5.0], [5.0], [5.0]])
     api.set_endpoints(start_pos, goal_pos)
-    print(f"🎯 planning from {start_pos} to {goal_pos}")
+    print(f"🎯 planning from {start_pos.flatten()} to {goal_pos.flatten()}")
 
     # 3. optimization parameters
     print("⚡ running trajectory optimization...")
@@ -49,7 +59,12 @@ def main():
         penalty_weights    = np.array([1, 1, 1, 1, 1]),
         physical_params    = np.array([1., 9.81, 0., 0., 0., 0.01])
     )
+    
+    return api, success
 
+def main():
+    api, success = generate_basic_trajectory()
+    
     # 4. get results
     if success:
         print("✅ trajectory optimization successful!")
