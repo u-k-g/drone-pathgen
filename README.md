@@ -5,9 +5,16 @@
 
 `drone-pathgen` is a lightweight python wrapper around **gcopter** – a trajectory optimizer for multicopters. it lets you generate smooth, collision-free drone paths directly from python swiftly and painlessly.
 
-</details>
-<img width="400" alt="image" src="https://github.com/user-attachments/assets/d2c40804-ac8f-440d-a3db-ab63a1d49f26" />
+<details>
+<summary><strong>applications</strong></summary>
 
+- autonomous delivery
+- search & rescue navigation
+- infrastructure inspection
+- simulation & research prototypes
+- indoor warehouse flight planning
+
+</details>
 <details open>
 <summary><strong>features</strong></summary>
 
@@ -19,6 +26,11 @@
 - optional open3d visualization extras [see screenshot in overview]
 
 </details>
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/d2c40804-ac8f-440d-a3db-ab63a1d49f26" />
+</details>
+
+
+
 
 <details open>
 <summary><strong>installation</strong></summary>
@@ -34,7 +46,9 @@ sudo apt-get update
 sudo apt-get install libompl-dev libeigen3-dev libboost-all-dev
 ```
 
-install the library [core only]:
+install the library:
+<details>
+<summary><strong>core only</strong></summary>
 
 ```fish
 uv add git+https://github.com/u-k-g/drone-pathgen.git
@@ -42,7 +56,10 @@ uv add git+https://github.com/u-k-g/drone-pathgen.git
 pip install git+https://github.com/u-k-g/drone-pathgen.git
 ```
 
-install with visualization support [adds open3d]:
+</details>
+
+<details>
+<summary><strong>with visualization support [adds open3d]</strong></summary>
 
 ```fish
 uv add "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
@@ -50,12 +67,14 @@ uv add "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 pip install "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 ```
 
+</details>
+
 supported python versions [3.8 → 3.12]
 
 </details>
 
 <details open>
-<summary><strong>python api usage</strong></summary>
+<summary><strong>usage</strong></summary>
 
 see the examples folder for complete working demos:
 
@@ -73,27 +92,9 @@ success = api.run_inference(...)
 
 </details>
 
-<details open>
-<summary><strong>key concepts</strong></summary>
 
-- **voxel map** – 3d occupancy grid representing obstacles
-- **safe-flight-corridor (sfc)** – chain of convex polytopes that guarantee clearance
-- **trajectory optimisation** – polynomial path refined to satisfy dynamics & safety
 
-</details>
-
-<details open>
-<summary><strong>applications</strong></summary>
-
-- autonomous delivery
-- search & rescue navigation
-- infrastructure inspection
-- simulation & research prototypes
-- indoor warehouse flight planning
-
-</details>
-
-<details open>
+<details>
 <summary><strong>license</strong></summary>
 
 released under the mit license – see `license` file for details.
