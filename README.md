@@ -6,6 +6,7 @@
 `drone-pathgen` is a lightweight python wrapper around **gcopter** – a state-of-the-art trajectory optimizer for multicopters. it lets you generate smooth, collision-free drone paths directly from python while keeping the heavy number-crunching in c++.
 
 </details>
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/d2c40804-ac8f-440d-a3db-ab63a1d49f26" />
 
 <details open>
 <summary><strong>features</strong></summary>
