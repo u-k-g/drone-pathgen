@@ -32,9 +32,9 @@ def main():
     api.configure_map(map_size, origin, voxel_scale, obstacles, dilation_radius=2)
 
     # 2. define endpoints
-    start_pos = np.array([-3., -3., 1.])
-    goal_pos  = np.array([3., 3., 1.])
-    api.set_endpoints(start=start_pos, goal=goal_pos)
+    start_pos = np.array([[-5.0], [-5.0], [1.5]])
+    goal_pos  = np.array([[5.0], [5.0], [3.0]])
+    api.set_endpoints(start_pos, goal_pos)
     print(f"🎯 planning from {start_pos} to {goal_pos}")
 
     # 3. optimization parameters
