@@ -49,15 +49,6 @@ if success:
     print(f"✅ Planned {stats.total_duration:.2f}s trajectory")
 ```
 
-## Key Features
-
-- **Obstacle-aware planning** with 3D voxel maps
-- **Physics-based optimization** respecting drone dynamics
-- **Smooth trajectories** with jerk minimization
-- **Flexible constraints** for velocity, acceleration, and control limits
-- **3D visualization** support with Open3D
-- **Real-time capable** trajectory sampling
-
 ## Library Overview
 
 ### Core Workflow
@@ -73,22 +64,6 @@ flowchart TD
     F --> H[Execute/Visualize Path]
 ```
 
-### Main Components
-
-- **GCopterAPI**: Primary interface for trajectory planning
-- **DroneState**: Kinematic state (position, velocity, acceleration, jerk)
-- **ControlInputs**: Control commands (thrust, attitude)
-- **TrajectoryStatistics**: Performance metrics and analysis
-
-## Applications
-
-- Autonomous delivery and logistics
-- Search & rescue operations
-- Infrastructure inspection
-- Aerial cinematography
-- Research and simulation
-- Indoor warehouse navigation
-
 ## Dependencies
 
 - **Core**: NumPy, C++ libraries (OMPL, Eigen, Boost)
@@ -97,7 +72,6 @@ flowchart TD
 
 ## Getting Help
 
-- Check the [troubleshooting section](installation.md#troubleshooting-build-issues) for common issues
 - Review [examples](../examples/) for implementation patterns
 - Browse the [API reference](api_reference.md) for detailed documentation
 - Submit issues on [GitHub](https://github.com/u-k-g/drone-pathgen/issues)
