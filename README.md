@@ -23,7 +23,7 @@
 - smooth, jerk-limited trajectories within safe-flight-corridors (sfc)
 - built-in optimization for time, energy and feasibility
 - numpy-friendly api – results come back as plain ndarrays
-- optional open3d visualization extras [see screenshot in overview]
+- optional open3d visualization extras [see screenshot below]
 
 </details>
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/d2c40804-ac8f-440d-a3db-ab63a1d49f26" />

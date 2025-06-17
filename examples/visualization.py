@@ -12,7 +12,7 @@ requires: uv add "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 """
 
 import numpy as np
-from basic_pathgen import generate_basic_trajectory
+from basic_pathgen import generate_basic_trajectory # look at basic_pathgen.py before reading this
 
 def visualize_trajectory():
     """run trajectory planning and visualize results with open3d"""
