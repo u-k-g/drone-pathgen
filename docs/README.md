@@ -7,7 +7,7 @@ Welcome to the comprehensive documentation for `drone-pathgen`, a Python wrapper
 1. **[Installation Guide](installation.md)** - System setup and installation instructions
 2. **[User Guide](user_guide.md)** - Getting started and core concepts  
 3. **[API Reference](api_reference.md)** - Complete API documentation
-4. **[Examples](examples.md)** - Practical code examples and use cases
+4. **[Examples](../examples/)** - Practical code examples and use cases
 
 ## Quick Start
 
@@ -98,7 +98,7 @@ flowchart TD
 ## Getting Help
 
 - Check the [troubleshooting section](installation.md#troubleshooting-build-issues) for common issues
-- Review [examples](examples.md) for implementation patterns
+- Review [examples](../examples/) for implementation patterns
 - Browse the [API reference](api_reference.md) for detailed documentation
 - Submit issues on [GitHub](https://github.com/u-k-g/drone-pathgen/issues)
 
