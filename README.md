@@ -119,14 +119,14 @@ if success:
 <details open>
 <summary><strong>documentation</strong></summary>
 
-📚 **comprehensive documentation available in [`docs/`](docs/)**
+**comprehensive documentation available in [`docs/`](docs/)**
 
 - **[installation guide](docs/installation.md)** - system setup and troubleshooting
 - **[user guide](docs/user_guide.md)** - getting started and core concepts
 - **[api reference](docs/api_reference.md)** - complete method documentation
 - **[examples](docs/examples.md)** - 9 practical code examples and use cases
 
-📁 **working examples in [`examples/`](examples/)**
+**working examples in [`examples/`](examples/)**
 
 - [`examples/basic_pathgen.py`](examples/basic_pathgen.py) - core trajectory planning workflow
 - [`examples/visualization.py`](examples/visualization.py) - 3d visualization with open3d
