@@ -1,4 +1,4 @@
-# GCOPTER python wrapper
+# drone-pathgen
 
 <details open>
 <summary><strong>overview</strong></summary>
@@ -74,21 +74,62 @@ supported python versions [3.8 → 3.12]
 </details>
 
 <details open>
-<summary><strong>usage</strong></summary>
+<summary><strong>quick start</strong></summary>
 
-see the examples folder for complete working demos:
+```python
+import numpy as np
+import gcopter_cpp as gc
+
+# create api and configure environment
+api = gc.GCopterAPI()
+api.configure_map(
+    map_size=np.array([20, 20, 10], dtype=np.int32),
+    origin=np.array([-5.0, -5.0, 0.0]),
+    voxel_scale=0.5,
+    obstacle_points=[np.array([0.0, 0.0, 2.0])],
+    dilation_radius=2
+)
+
+# set trajectory endpoints
+start = np.array([[-4.0], [-4.0], [1.0]])
+goal = np.array([[4.0], [4.0], [3.0]])
+api.set_endpoints(start, goal)
+
+# plan trajectory
+success = api.run_inference(
+    planning_timeout=5.0,
+    time_weight=50.0,
+    segment_length=2.0,
+    smoothing_epsilon=1e-3,
+    integral_resolution=8,
+    magnitude_bounds=np.array([5., 10., np.pi/3, 5., 15.]),
+    penalty_weights=np.array([1, 1, 1, 1, 1]),
+    physical_params=np.array([1., 9.81, 0., 0., 0., 0.01])
+)
+
+# get results
+if success:
+    stats = gc.TrajectoryStatistics()
+    api.get_statistics(stats)
+    print(f"✅ planned {stats.total_duration:.2f}s trajectory")
+```
+
+</details>
+
+<details open>
+<summary><strong>documentation</strong></summary>
+
+📚 **comprehensive documentation available in [`docs/`](docs/)**
+
+- **[installation guide](docs/installation.md)** - system setup and troubleshooting
+- **[user guide](docs/user_guide.md)** - getting started and core concepts
+- **[api reference](docs/api_reference.md)** - complete method documentation
+- **[examples](docs/examples.md)** - 9 practical code examples and use cases
+
+📁 **working examples in [`examples/`](examples/)**
 
 - [`examples/basic_pathgen.py`](examples/basic_pathgen.py) - core trajectory planning workflow
 - [`examples/visualization.py`](examples/visualization.py) - 3d visualization with open3d
-
-basic workflow:
-```python
-import gcopter_cpp as gc
-api = gc.GCopterAPI()
-api.configure_map(map_size, origin, voxel_scale, obstacles, dilation_radius)
-api.set_endpoints(start_pos, goal_pos)
-success = api.run_inference(...)
-```
 
 </details>
 
