@@ -205,3 +205,7 @@ physical_params = np.array([
 - **Lower `smoothing_epsilon`**: Smoother paths, slower optimization
 - **Higher `segment_length`**: Fewer pieces, less flexible
 - **Higher `dilation_radius`**: Larger safety margins around obstacles
+
+## Next
+
+1. Read the [Examples](../examples/) for working code  

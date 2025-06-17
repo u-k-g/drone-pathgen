@@ -49,19 +49,6 @@ uv add "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 pip install "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 ```
 
-### Option 3: Development Installation
-
-For contributing or development:
-
-```bash
-# Clone repository
-git clone https://github.com/u-k-g/drone-pathgen.git
-cd drone-pathgen
-
-# Install in development mode
-pip install -e ".[dev,viz]"
-```
-
 ## Verification
 
 Test your installation:
@@ -99,43 +86,11 @@ uv add "git+https://github.com/u-k-g/drone-pathgen.git[viz]"
 uv run python main.py
 ```
 
-## Performance Optimization
-
-For better performance, consider:
-
-### OpenMP Support
-
-Enable parallel processing:
-```bash
-# Linux
-export OMP_NUM_THREADS=4
-
-# Add to ~/.bashrc for persistence
-echo "export OMP_NUM_THREADS=4" >> ~/.bashrc
-```
-
-### NumPy BLAS
-
-Ensure NumPy uses optimized BLAS:
-```python
-import numpy as np
-np.show_config()  # Check BLAS configuration
-```
-
-Install optimized NumPy:
-```bash
-# Intel MKL (if available)
-pip install mkl numpy
-
-# Or OpenBLAS
-pip install openblas numpy
-```
-
-## Next Steps
+## Next
 
 After successful installation:
 
 1. Read the [User Guide](user_guide.md) for basic usage
-2. Check out [examples/](../examples/) for working code  
-3. Review the [API Reference](api_reference.md) for detailed documentation
-4. Run `examples/basic_pathgen.py` to test functionality
+
+2. Review the [API Reference](api_reference.md) for detailed documentation
+3. Check out [examples/](../examples/) for working code  
